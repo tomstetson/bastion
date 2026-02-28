@@ -26,7 +26,10 @@ const execFileAsync = promisify(execFile)
 export const SESSION_PREFIX = "bastion_"
 
 // Signal file for command palette request
-const COMMAND_PALETTE_SIGNAL = "/tmp/bastion-cmd-palette"
+// Stored in ~/.bastion/ instead of /tmp/ to prevent symlink attacks
+// where a local attacker could create a symlink at the /tmp path
+// targeting a sensitive file that unlinkSync() would then delete.
+const COMMAND_PALETTE_SIGNAL = path.join(os.homedir(), ".bastion", "cmd-palette-signal")
 
 // --- Isolated tmux server configuration ---
 // All bastion sessions run on a dedicated tmux socket with a custom config,
