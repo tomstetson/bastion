@@ -207,7 +207,7 @@ export async function createSession(options: {
   // Unset Claude Code env vars inherited by the shell from the tmux server
   // process (which may have been started from a Claude Code context).
   // Must be sent to the shell directly since set-environment -r is too late.
-  await execAsync(tmuxCmd(`send-keys -t "${options.name}" "unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" Enter`))
+  await sendKeys(options.name, "unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS")
 
   if (options.command) {
     let cmdToSend = options.command
@@ -619,12 +619,12 @@ export async function getSessionsMemoryKB(sessionNames: string[]): Promise<Map<s
 
   try {
     // Get all pane PIDs from our tmux server
-    const { stdout: paneOutput } = await execAsync(
-      tmuxCmd('list-panes -a -F "#{session_name} #{pane_pid}"')
+    const { stdout: paneOutput } = await execTmux(
+      "list-panes", "-a", "-F", "#{session_name} #{pane_pid}"
     )
 
     // Get all process info in one shot
-    const { stdout: psOutput } = await execAsync("ps -eo pid=,ppid=,rss=")
+    const { stdout: psOutput } = await execFileAsync("ps", ["-eo", "pid=,ppid=,rss="])
 
     // Build process tree lookup: pid -> { ppid, rss }
     const procs = new Map<number, { ppid: number; rss: number }>()
