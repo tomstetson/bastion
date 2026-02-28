@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Agent View Uninstaller
-# Usage: curl -fsSL https://raw.githubusercontent.com/frayo44/agent-view/main/uninstall.sh | bash
+# Bastion Uninstaller
+# Usage: curl -fsSL https://raw.githubusercontent.com/tomstetson/bastion/main/uninstall.sh | bash
 #
 
 set -euo pipefail
@@ -13,37 +13,37 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-INSTALL_DIR="${AGENT_VIEW_INSTALL_DIR:-$HOME/.agent-view}"
-BIN_DIR="${AGENT_VIEW_BIN_DIR:-$HOME/.local/bin}"
+INSTALL_DIR="${BASTION_INSTALL_DIR:-$HOME/.bastion}"
+BIN_DIR="${BASTION_BIN_DIR:-$HOME/.local/bin}"
 
 log() {
-  echo -e "${BLUE}[agent-view]${NC} $1"
+  echo -e "${BLUE}[bastion]${NC} $1"
 }
 
 success() {
-  echo -e "${GREEN}[agent-view]${NC} $1"
+  echo -e "${GREEN}[bastion]${NC} $1"
 }
 
 warn() {
-  echo -e "${YELLOW}[agent-view]${NC} $1"
+  echo -e "${YELLOW}[bastion]${NC} $1"
 }
 
 main() {
   echo ""
   echo -e "${BLUE}╭───────────────────────────────────╮${NC}"
-  echo -e "${BLUE}│      ${RED}Agent View Uninstaller${BLUE}       │${NC}"
+  echo -e "${BLUE}│      ${RED}Bastion Uninstaller${BLUE}       │${NC}"
   echo -e "${BLUE}╰───────────────────────────────────╯${NC}"
   echo ""
 
   # Remove binaries
-  if [ -f "$BIN_DIR/agent-view" ]; then
-    log "Removing $BIN_DIR/agent-view..."
-    rm -f "$BIN_DIR/agent-view"
+  if [ -f "$BIN_DIR/bastion" ]; then
+    log "Removing $BIN_DIR/bastion..."
+    rm -f "$BIN_DIR/bastion"
   fi
 
-  if [ -f "$BIN_DIR/av" ]; then
-    log "Removing $BIN_DIR/av..."
-    rm -f "$BIN_DIR/av"
+  if [ -f "$BIN_DIR/bn" ]; then
+    log "Removing $BIN_DIR/bn..."
+    rm -f "$BIN_DIR/bn"
   fi
 
   # Remove installation directory
@@ -53,10 +53,10 @@ main() {
   fi
 
   echo ""
-  success "Agent View has been uninstalled"
+  success "Bastion has been uninstalled"
   echo ""
   warn "Note: PATH entries in shell config files were not removed"
-  warn "You may want to manually remove the Agent View PATH entry from your shell config"
+  warn "You may want to manually remove the Bastion PATH entry from your shell config"
   echo ""
 }
 

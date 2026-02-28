@@ -1,6 +1,6 @@
 /**
  * Tmux session management
- * Based on agent-view's tmux package with session caching
+ * Based on bastion's tmux package with session caching
  *
  * Uses an isolated tmux server (separate socket + custom config)
  * to avoid conflicts with the user's tmux configuration.
@@ -23,19 +23,19 @@ async function getPty() {
 
 const execFileAsync = promisify(execFile)
 
-export const SESSION_PREFIX = "agentorch_"
+export const SESSION_PREFIX = "bastion_"
 
 // Signal file for command palette request
-const COMMAND_PALETTE_SIGNAL = "/tmp/agent-view-cmd-palette"
+const COMMAND_PALETTE_SIGNAL = "/tmp/bastion-cmd-palette"
 
 // --- Isolated tmux server configuration ---
-// All agent-view sessions run on a dedicated tmux socket with a custom config,
+// All bastion sessions run on a dedicated tmux socket with a custom config,
 // so we never load or interfere with the user's ~/.tmux.conf.
 // The config is defined in src/core/tmux.conf and inlined at build time.
 import TMUX_CONF from "./tmux.conf" with { type: "text" }
 
-const TMUX_SOCKET = "agent-view"
-const CONFIG_DIR = path.join(os.homedir(), ".agent-view")
+const TMUX_SOCKET = "bastion"
+const CONFIG_DIR = path.join(os.homedir(), ".bastion")
 const CONFIG_PATH = path.join(CONFIG_DIR, "tmux.conf")
 
 let configWritten = false
@@ -518,7 +518,7 @@ export function parseToolStatus(output: string, tool?: string): ToolStatus {
 /**
  * Attach to a tmux session with PTY support
  * Intercepts Ctrl+Q (ASCII 17) to detach and return control to the TUI
- * Based on agent-view's pty.go implementation
+ * Based on bastion's pty.go implementation
  */
 export async function attachWithPty(sessionName: string): Promise<void> {
   const ptyModule = await getPty()
@@ -700,6 +700,6 @@ export function attachSessionSync(sessionName: string): void {
   process.stdout.write("\x1b[2J\x1b[H")
   process.stdout.write("\x1b[?1049h")
 
-  // Restore terminal title to "Agent View"
-  process.stdout.write("\x1b]0;Agent View\x07")
+  // Restore terminal title to "Bastion"
+  process.stdout.write("\x1b]0;Bastion\x07")
 }

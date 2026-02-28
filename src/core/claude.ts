@@ -142,7 +142,7 @@ function findSessionID(
  * This helps distinguish real sessions from "zombie" sessions
  * (e.g., Claude crashed on startup before creating conversation).
  *
- * Based on agent-deck's sessionHasConversationData() approach.
+ * Based on bastion's sessionHasConversationData() approach.
  */
 export function sessionHasConversationData(
   projectPath: string,

@@ -1,6 +1,6 @@
 /**
- * Core types for Agent Orchestrator
- * Based on agent-view's data model
+ * Core types for Bastion
+ * Based on bastion's data model
  */
 
 export type SessionStatus =

@@ -10,7 +10,7 @@ import path from "path"
 import os from "os"
 
 // File logger for debugging
-const logDir = path.join(os.homedir(), ".agent-orchestrator")
+const logDir = path.join(os.homedir(), ".bastion")
 const logFile = path.join(logDir, "debug.log")
 fs.mkdirSync(logDir, { recursive: true })
 function log(...args: unknown[]) {
@@ -48,7 +48,7 @@ export interface TuiOptions {
 }
 
 export async function tui(options: TuiOptions = {}) {
-  log("=== Agent Orchestrator starting ===")
+  log("=== Bastion starting ===")
 
   // Check tmux availability
   const tmuxOk = await isTmuxAvailable()
@@ -58,14 +58,14 @@ export async function tui(options: TuiOptions = {}) {
   }
 
   // Set terminal title
-  process.stdout.write("\x1b]0;Agent View\x07")
+  process.stdout.write("\x1b]0;Bastion\x07")
 
   // Initialize storage
   const storage = new Storage()
   storage.migrate()
   setStorage(storage)
 
-  // Load config from ~/.agent-view/config.json
+  // Load config from ~/.bastion/config.json
   await loadConfig()
 
   const mode = options.mode ?? (await detectTerminalMode())
@@ -163,7 +163,7 @@ function App(props: { onExit: () => Promise<void>; onRendererReady: (r: CliRende
 
       command.register(() => [
         {
-          title: "Update agent-view",
+          title: "Update bastion",
           value: "app.update",
           category: "System",
           suggested: true,

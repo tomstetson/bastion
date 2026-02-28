@@ -22,7 +22,7 @@ describe("generateSessionName", () => {
   test("sanitizes special characters", () => {
     const name = generateSessionName("My Feature!")
     // Should only contain alphanumeric, dashes, and underscores
-    expect(name).toMatch(/^agentorch_[a-z0-9-]+-[a-z0-9]+$/)
+    expect(name).toMatch(/^bastion_[a-z0-9-]+-[a-z0-9]+$/)
   })
 
   test("converts to lowercase", () => {
@@ -95,7 +95,7 @@ describe("generateSessionName", () => {
 
     for (const title of dangerous) {
       const name = generateSessionName(title)
-      expect(name).toMatch(/^agentorch_[a-z0-9-]*-[a-z0-9]+$/)
+      expect(name).toMatch(/^bastion_[a-z0-9-]*-[a-z0-9]+$/)
       expect(name).not.toMatch(/[;|&$`'"<>\\(){}]/)
     }
   })
@@ -275,6 +275,6 @@ describe("session cache", () => {
 
 describe("SESSION_PREFIX constant", () => {
   test("has expected value", () => {
-    expect(SESSION_PREFIX).toBe("agentorch_")
+    expect(SESSION_PREFIX).toBe("bastion_")
   })
 })

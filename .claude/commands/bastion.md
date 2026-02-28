@@ -1,9 +1,9 @@
-Use the `av` CLI to manage agent-view sessions without the TUI.
+Use the `bn` CLI to manage bastion sessions without the TUI.
 
 ## Create a session
 
 ```bash
-av --new --path $PROJECT_PATH --tool claude
+bn --new --path $PROJECT_PATH --tool claude
 ```
 
 Flags:
@@ -21,25 +21,25 @@ Flags:
 ## List sessions
 
 ```bash
-av --list
-av --list --status running
-av --list --json
+bn --list
+bn --list --status running
+bn --list --json
 ```
 
 ## Session actions
 
 ```bash
-av --stop <id-or-title>
-av --restart <id-or-title>
-av --attach <id-or-title>
-av --delete <id-or-title> --force
-av --delete <id-or-title> --worktree --force
+bn --stop <id-or-title>
+bn --restart <id-or-title>
+bn --attach <id-or-title>
+bn --delete <id-or-title> --force
+bn --delete <id-or-title> --worktree --force
 ```
 
 ## Send instructions to a running session
 
 ```bash
-av --send <id-or-title> Fix the snackbar so it appears above the bottom nav bar
+bn --send <id-or-title> Fix the snackbar so it appears above the bottom nav bar
 ```
 
 Sends the message as input to the session's tmux pane (types it and presses Enter). Use this to give tasks to running Claude/agent sessions programmatically.
@@ -47,9 +47,9 @@ Sends the message as input to the session's tmux pane (types it and presses Ente
 ## Session info
 
 ```bash
-av --status <id-or-title>
-av --info <id-or-title>
-av --info <id-or-title> --json
+bn --status <id-or-title>
+bn --info <id-or-title>
+bn --info <id-or-title> --json
 ```
 
 Sessions can be referenced by full ID, title, or ID prefix. Changes made via CLI appear in any running TUI instance automatically.

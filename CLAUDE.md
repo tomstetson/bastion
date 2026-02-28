@@ -1,6 +1,6 @@
-# Agent View
+# Bastion
 
-OpenTUI-based terminal interface for managing and monitoring AI coding agent sessions.
+Security-hardened terminal agent orchestrator. Forked from agent-view by Frayo44.
 
 ## Tech Stack
 
@@ -36,26 +36,21 @@ src/
 - **Git Worktrees:** Create sessions in isolated git worktrees
 - **Auto-suggestions:** Fuzzy search for previously used paths and branch names
 - **Status Monitoring:** Real-time session status (running, waiting, idle, error)
+- **Security Hardened:** No shell injection, restrictive directory permissions, symlink-safe signal files, SQL field allowlists, input validation
 
 ## Installation
 
-### Quick Install (Recommended)
+### Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/frayo44/agent-view/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tomstetson/bastion/main/install.sh | bash
 ```
-
-This will:
-- Install Bun if not present
-- Clone the repository to `~/.agent-view`
-- Build the project
-- Create `agent-view` and `av` commands in `~/.local/bin`
 
 ### Manual Install
 
 ```bash
-git clone https://github.com/frayo44/agent-view.git
-cd agent-view
+git clone https://github.com/tomstetson/bastion.git
+cd bastion
 bun install
 bun run build
 ```
@@ -67,12 +62,10 @@ bun run compile        # Compile for current platform
 bun run compile:all    # Compile for all platforms (darwin/linux, x64/arm64)
 ```
 
-Binaries are output to the `bin/` directory.
-
 ### Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/frayo44/agent-view/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tomstetson/bastion/main/uninstall.sh | bash
 ```
 
 ## Development
@@ -91,3 +84,12 @@ bun test         # Run tests
 - `src/tui/routes/home.tsx` - Main home screen with session list
 - `src/core/session.ts` - Session creation and lifecycle
 - `src/core/git.ts` - Git worktree operations
+
+## Security Notes
+
+- All subprocess calls use `execFile()` / `spawnSync()` with argument arrays — never shell strings
+- Config directories created with mode `0o700`
+- Signal files stored in `~/.bastion/` (not `/tmp/`) to prevent symlink attacks
+- SQL field names validated against an allowlist before interpolation
+- Session IDs validated as UUID format at public method boundaries
+- Release version tags validated as semver before use in download URLs

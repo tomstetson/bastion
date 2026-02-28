@@ -1,6 +1,6 @@
 /**
  * Git utilities for worktree management
- * Based on agent-view's internal/git package
+ * Based on bastion's internal/git package
  */
 
 import { execFile } from "child_process"

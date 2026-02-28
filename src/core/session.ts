@@ -14,7 +14,7 @@ import fs from "fs"
 import os from "os"
 import { buildForkCommand, buildClaudeCommand, copySessionToProject, sessionFileExists } from "./claude"
 
-const logFile = path.join(os.homedir(), ".agent-orchestrator", "debug.log")
+const logFile = path.join(os.homedir(), ".bastion", "debug.log")
 function log(...args: unknown[]) {
   const msg = `[${new Date().toISOString()}] [SESSION] ${args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ")}\n`
   try { fs.appendFileSync(logFile, msg) } catch {}
@@ -164,7 +164,7 @@ export class SessionManager {
 
     // Build environment variables
     const env: Record<string, string> = {
-      AGENT_ORCHESTRATOR_SESSION: id
+      BASTION_SESSION: id
     }
     if (claudeSessionId) {
       env.CLAUDE_SESSION_ID = claudeSessionId
@@ -435,7 +435,7 @@ export class SessionManager {
       ? `claude --resume ${claudeSessionId}`
       : session.command
 
-    const env: Record<string, string> = { AGENT_ORCHESTRATOR_SESSION: session.id }
+    const env: Record<string, string> = { BASTION_SESSION: session.id }
     if (claudeSessionId) {
       env.CLAUDE_SESSION_ID = claudeSessionId
     }
@@ -478,7 +478,7 @@ export class SessionManager {
       ? `claude --session-id "${newClaudeSessionId}"`
       : session.command
 
-    const env: Record<string, string> = { AGENT_ORCHESTRATOR_SESSION: session.id }
+    const env: Record<string, string> = { BASTION_SESSION: session.id }
     if (newClaudeSessionId) {
       env.CLAUDE_SESSION_ID = newClaudeSessionId
     }

@@ -41,28 +41,22 @@ import fs from "fs"
 import path from "path"
 import os from "os"
 
-const logFile = path.join(os.homedir(), ".agent-orchestrator", "debug.log")
+const logFile = path.join(os.homedir(), ".bastion", "debug.log")
 function log(...args: unknown[]) {
   const msg = `[${new Date().toISOString()}] [HOME] ${args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ")}\n`
   try { fs.appendFileSync(logFile, msg) } catch {}
 }
 
 const LOGO = `
- █████╗  ██████╗ ███████╗███╗   ██╗████████╗
-██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝
-███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║
-██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║
-██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║
-╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝
-██╗   ██╗██╗███████╗██╗    ██╗
-██║   ██║██║██╔════╝██║    ██║
-██║   ██║██║█████╗  ██║ █╗ ██║
-╚██╗ ██╔╝██║██╔══╝  ██║███╗██║
- ╚████╔╝ ██║███████╗╚███╔███╔╝
-  ╚═══╝  ╚═╝╚══════╝ ╚══╝╚══╝
+██████╗  █████╗ ███████╗████████╗██╗ ██████╗ ███╗   ██╗
+██╔══██╗██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
+██████╔╝███████║███████╗   ██║   ██║██║   ██║██╔██╗ ██║
+██╔══██╗██╔══██║╚════██║   ██║   ██║██║   ██║██║╚██╗██║
+██████╔╝██║  ██║███████║   ██║   ██║╚██████╔╝██║ ╚████║
+╚═════╝ ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 `.trim()
 
-const SMALL_LOGO = `◆ AGENT VIEW`
+const SMALL_LOGO = `◆ BASTION`
 
 function stripAnsi(str: string): string {
   return str.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "")
@@ -794,7 +788,7 @@ export function Home() {
         backgroundColor={theme.backgroundPanel}
       >
         <text fg={theme.primary} attributes={TextAttributes.BOLD}>
-          AGENT VIEW
+          BASTION
         </text>
         <box flexDirection="row" gap={2}>
           <Show when={stats().running > 0}>

@@ -142,7 +142,7 @@ export function DialogShortcuts() {
 
         <box paddingLeft={4} paddingRight={4} paddingTop={1}>
           <text fg={theme.textMuted}>
-            Add shortcuts to ~/.agent-view/config.json
+            Add shortcuts to ~/.bastion/config.json
           </text>
         </box>
 

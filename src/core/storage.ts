@@ -1,6 +1,6 @@
 /**
  * SQLite storage for session/group persistence
- * Based on agent-view's statedb pattern
+ * Based on bastion's statedb pattern
  * Uses Bun's built-in SQLite
  */
 
@@ -41,7 +41,7 @@ export class Storage {
 
   private getDefaultPath(): string {
     const home = os.homedir()
-    return path.join(home, ".agent-orchestrator", "state.db")
+    return path.join(home, ".bastion", "state.db")
   }
 
   migrate(): void {

@@ -1,6 +1,6 @@
 /**
- * Configuration loader for agent-view
- * Reads from ~/.agent-view/config.json
+ * Configuration loader for bastion
+ * Reads from ~/.bastion/config.json
  */
 
 import * as path from "path"
@@ -21,7 +21,7 @@ export interface AppConfig {
   shortcuts?: Shortcut[]
 }
 
-const CONFIG_DIR = path.join(os.homedir(), ".agent-view")
+const CONFIG_DIR = path.join(os.homedir(), ".bastion")
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json")
 
 const DEFAULT_CONFIG: AppConfig = {

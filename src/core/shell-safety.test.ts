@@ -27,7 +27,7 @@ describe("generateSessionName strips shell metacharacters", () => {
     test(`strips ${desc}: "${input}"`, () => {
       const name = generateSessionName(input)
       // Should only contain safe chars: alphanumeric, dashes, underscores
-      expect(name).toMatch(/^agentorch_[a-z0-9-]*-[a-z0-9]+$/)
+      expect(name).toMatch(/^bastion_[a-z0-9-]*-[a-z0-9]+$/)
       // Should not contain any shell metacharacters
       expect(name).not.toMatch(/[;|&$`'"<>\\(){}\n\r\x00]/)
     })
@@ -36,7 +36,7 @@ describe("generateSessionName strips shell metacharacters", () => {
   test("empty input produces valid name", () => {
     const name = generateSessionName("")
     expect(name.startsWith(SESSION_PREFIX)).toBe(true)
-    expect(name).toMatch(/^agentorch_-?[a-z0-9]+$/)
+    expect(name).toMatch(/^bastion_-?[a-z0-9]+$/)
   })
 })
 

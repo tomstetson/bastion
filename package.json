@@ -1,12 +1,12 @@
 {
-  "name": "agent-orchestrator",
+  "name": "bastion",
   "version": "0.0.20",
-  "description": "OpenTUI-based Agent Management",
+  "description": "Hardened terminal agent orchestrator",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "agent-orchestrator": "./dist/cli/index.js",
-    "ao": "./dist/cli/index.js"
+    "bastion": "./dist/cli/index.js",
+    "bn": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "bun run scripts/build.ts",

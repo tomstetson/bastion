@@ -41,7 +41,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: agent-view-${{ matrix.platform }}
+          name: bastion-${{ matrix.platform }}
           path: bin/*.tar.gz
 
   release:

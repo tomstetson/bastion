@@ -173,19 +173,19 @@ export function parseArgs(argv: string[]): CLICommand {
 
 export function printHelp(): void {
   console.log(`
-Agent View - Terminal Agent Management
+Bastion - Terminal Agent Management
 
 Usage:
-  av [options]                    Launch TUI (default)
-  av --new [flags]                Create a new session
-  av --list [flags]               List sessions
-  av --delete <id> [flags]        Delete a session
-  av --stop <id>                  Stop a session
-  av --restart <id>               Restart a session
-  av --attach <id>                Attach to a session
-  av --status <id>                Get session status
-  av --info <id> [--json]         Get session details
-  av --send <id> <message>        Send instructions to a running session
+  bn [options]                    Launch TUI (default)
+  bn --new [flags]                Create a new session
+  bn --list [flags]               List sessions
+  bn --delete <id> [flags]        Delete a session
+  bn --stop <id>                  Stop a session
+  bn --restart <id>               Restart a session
+  bn --attach <id>                Attach to a session
+  bn --status <id>                Get session status
+  bn --info <id> [--json]         Get session details
+  bn --send <id> <message>        Send instructions to a running session
 
 TUI Options:
   --light                         Use light mode theme

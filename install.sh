@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Agent View Installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/frayo44/agent-view/main/install.sh | bash
+# Bastion Installer
+# Usage: curl -fsSL https://raw.githubusercontent.com/tomstetson/bastion/main/install.sh | bash
 #
 
 set -euo pipefail
 
-APP=agent-view
-REPO="frayo44/agent-view"
+APP=bastion
+REPO="tomstetson/bastion"
 
 # Colors
 MUTED='\033[0;2m'
@@ -16,11 +16,11 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-INSTALL_DIR="${AGENT_VIEW_INSTALL_DIR:-$HOME/.agent-view/bin}"
+INSTALL_DIR="${BASTION_INSTALL_DIR:-$HOME/.bastion/bin}"
 
 usage() {
     cat <<EOF
-Agent View Installer
+Bastion Installer
 
 Usage: install.sh [options]
 
@@ -33,7 +33,7 @@ Options:
 Examples:
     curl -fsSL https://raw.githubusercontent.com/$REPO/main/install.sh | bash
     curl -fsSL https://raw.githubusercontent.com/$REPO/main/install.sh | bash -s -- --version 1.0.0
-    ./install.sh --binary /path/to/agent-view
+    ./install.sh --binary /path/to/bastion
 EOF
 }
 
@@ -104,7 +104,7 @@ check_tmux() {
     fi
 
     echo -e "${MUTED}tmux is not installed.${NC}"
-    echo "Agent View requires tmux to function."
+    echo "Bastion requires tmux to function."
     echo ""
 
     local os_type="$(uname -s)"
@@ -204,8 +204,8 @@ else
 fi
 
 check_version() {
-    if command -v agent-view >/dev/null 2>&1; then
-        installed_version=$(agent-view --version 2>/dev/null || echo "")
+    if command -v bastion >/dev/null 2>&1; then
+        installed_version=$(bastion --version 2>/dev/null || echo "")
         if [[ "$installed_version" == "$specific_version" ]]; then
             echo -e "${MUTED}Version ${NC}$specific_version${MUTED} already installed${NC}"
             exit 0
@@ -227,7 +227,7 @@ download_and_install() {
         echo -e "${RED}Download failed. The release may not have binaries for your platform.${NC}"
         echo -e "${MUTED}You can install from source instead:${NC}"
         echo -e "  git clone https://github.com/$REPO.git"
-        echo -e "  cd agent-view && bun install && bun run build"
+        echo -e "  cd bastion && bun install && bun run build"
         rm -rf "$tmp_dir"
         exit 1
     fi
@@ -252,14 +252,14 @@ download_and_install() {
     rm -rf "$tmp_dir"
 
     # Create short alias
-    ln -sf "$INSTALL_DIR/$APP" "$INSTALL_DIR/av"
+    ln -sf "$INSTALL_DIR/$APP" "$INSTALL_DIR/bn"
 }
 
 install_from_binary() {
     echo -e "\n${MUTED}Installing ${NC}$APP ${MUTED}from: ${NC}$binary_path"
     cp "$binary_path" "$INSTALL_DIR/$APP"
     chmod 755 "$INSTALL_DIR/$APP"
-    ln -sf "$INSTALL_DIR/$APP" "$INSTALL_DIR/av"
+    ln -sf "$INSTALL_DIR/$APP" "$INSTALL_DIR/bn"
 }
 
 if [ -n "$binary_path" ]; then
@@ -277,7 +277,7 @@ add_to_path() {
     if grep -Fxq "$command" "$config_file" 2>/dev/null; then
         return 0
     elif [[ -w $config_file ]]; then
-        echo -e "\n# agent-view" >> "$config_file"
+        echo -e "\n# bastion" >> "$config_file"
         echo "$command" >> "$config_file"
         echo -e "${MUTED}Added to PATH in ${NC}$config_file"
     fi
@@ -306,7 +306,7 @@ fi
 echo ""
 echo -e "${GREEN}Installation complete!${NC}"
 echo ""
-echo -e "  Run ${GREEN}agent-view${NC} or ${GREEN}av${NC} to open Agent View"
+echo -e "  Run ${GREEN}bastion${NC} or ${GREEN}bn${NC} to open Bastion"
 echo ""
 echo -e "  ${MUTED}Binary: ${NC}$INSTALL_DIR/$APP"
 echo ""

@@ -42,7 +42,7 @@ export function DialogUpdate(props: DialogUpdateProps) {
     renderer.resume()
     toast.show({
       title: "Update complete",
-      message: "Restart agent-view to use the new version",
+      message: "Restart bastion to use the new version",
       variant: "success",
       duration: 8000
     })
@@ -57,7 +57,7 @@ export function DialogUpdate(props: DialogUpdateProps) {
 
   return (
     <box gap={1} paddingBottom={1}>
-      <DialogHeader title="Update Agent View" />
+      <DialogHeader title="Update Bastion" />
 
       <box paddingLeft={4} paddingRight={4} paddingTop={1} gap={1} flexDirection="column">
         <text fg={theme.text}>

@@ -1,5 +1,5 @@
 /**
- * Agent Orchestrator
+ * Bastion
  * OpenTUI-based Agent Management
  */
 
@@ -61,7 +61,7 @@ async function main() {
   }
 
   if (command.type === "version") {
-    console.log(`agent-view v${pkg.version}`)
+    console.log(`bastion v${pkg.version}`)
     process.exit(0)
   }
 

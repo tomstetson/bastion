@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Release script for agent-view
+ * Release script for bastion
  *
  * Usage:
  *   bun run scripts/release.ts 1.0.0           # Release version 1.0.0
@@ -30,7 +30,7 @@ async function main() {
 
   console.log("")
   console.log("╭───────────────────────────────────╮")
-  console.log("│       Agent View Release          │")
+  console.log("│       Bastion Release          │")
   console.log("╰───────────────────────────────────╯")
   console.log("")
   console.log(`Version: ${tag}`)
@@ -75,12 +75,12 @@ async function main() {
   // Step 5: Create GitHub release
   console.log("🚀 Creating GitHub release...")
 
-  const releaseNotes = `## Agent View ${tag}
+  const releaseNotes = `## Bastion ${tag}
 
 ### Installation
 
 \`\`\`bash
-curl -fsSL https://raw.githubusercontent.com/frayo44/agent-view/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tomstetson/bastion/main/install.sh | bash
 \`\`\`
 
 ### Direct Download
@@ -94,7 +94,7 @@ Download the binary for your platform below, make it executable, and run it.
 
   const draftFlag = isDraft ? "--draft" : ""
   const binaries = await Array.fromAsync(
-    new Bun.Glob("agent-view-*").scan({ cwd: BIN_DIR })
+    new Bun.Glob("bastion-*").scan({ cwd: BIN_DIR })
   )
 
   const binaryPaths = binaries.map(b => path.join(BIN_DIR, b)).join(" ")
@@ -111,7 +111,7 @@ Download the binary for your platform below, make it executable, and run it.
   console.log("")
   console.log("✅ Release complete!")
   console.log("")
-  console.log(`   View release: https://github.com/frayo44/agent-view/releases/tag/${tag}`)
+  console.log(`   View release: https://github.com/tomstetson/bastion/releases/tag/${tag}`)
   console.log("")
 }
 

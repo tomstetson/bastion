@@ -26,7 +26,7 @@ function compareVersions(current: string, latest: string): boolean {
 
 export async function checkForUpdate(): Promise<{ current: string; latest: string } | null> {
   try {
-    const response = await fetch("https://api.github.com/repos/frayo44/agent-view/releases/latest", {
+    const response = await fetch("https://api.github.com/repos/tomstetson/bastion/releases/latest", {
       headers: { "Accept": "application/vnd.github.v3+json" },
       signal: AbortSignal.timeout(5000)
     })
@@ -72,9 +72,9 @@ export function performUpdateSync(): void {
   process.stdout.write("\x1b[2J\x1b[H")
   process.stdout.write("\x1b[?25h")
 
-  const REPO = "frayo44/agent-view"
-  const APP = "agent-view"
-  const installDir = process.env.AGENT_VIEW_INSTALL_DIR || path.join(os.homedir(), ".agent-view", "bin")
+  const REPO = "tomstetson/bastion"
+  const APP = "bastion"
+  const installDir = process.env.BASTION_INSTALL_DIR || path.join(os.homedir(), ".bastion", "bin")
 
   try {
     // 1. Fetch latest release tag from GitHub API
@@ -143,11 +143,11 @@ export function performUpdateSync(): void {
 
     // Create short alias symlink
     try {
-      fs.unlinkSync(path.join(installDir, "av"))
+      fs.unlinkSync(path.join(installDir, "bn"))
     } catch {
       // Symlink may not exist yet
     }
-    fs.symlinkSync(path.join(installDir, APP), path.join(installDir, "av"))
+    fs.symlinkSync(path.join(installDir, APP), path.join(installDir, "bn"))
 
     // 7. Cleanup
     fs.rmSync(tmpDir, { recursive: true, force: true })
@@ -156,7 +156,7 @@ export function performUpdateSync(): void {
     console.log(`Binary: ${path.join(installDir, APP)}`)
   } catch (err: any) {
     console.error(`\nUpdate failed: ${err.message}`)
-    console.error("You can update manually: curl -fsSL https://raw.githubusercontent.com/frayo44/agent-view/main/install.sh | bash")
+    console.error("You can update manually: curl -fsSL https://raw.githubusercontent.com/tomstetson/bastion/main/install.sh | bash")
   }
 
   // Clear screen and re-enter alternate buffer for TUI
@@ -164,5 +164,5 @@ export function performUpdateSync(): void {
   process.stdout.write("\x1b[?1049h")
 
   // Restore terminal title
-  process.stdout.write("\x1b]0;Agent View\x07")
+  process.stdout.write("\x1b]0;Bastion\x07")
 }
