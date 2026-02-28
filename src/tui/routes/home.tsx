@@ -315,22 +315,50 @@ export function Home() {
       ))
       return
     }
-    try {
-      await sync.session.delete(session.id)
-      toast.show({ message: `Deleted ${session.title}`, variant: "info", duration: 2000 })
-    } catch (err) {
-      toast.error(err as Error)
-    }
+
+    dialog.replace(() => (
+      <DialogSelect
+        title={`Delete "${session.title}"?`}
+        options={[
+          { title: "Delete session", value: "delete" },
+        ]}
+        onSelect={async () => {
+          dialog.clear()
+          try {
+            await sync.session.delete(session.id)
+            toast.show({ message: `Deleted ${session.title}`, variant: "info", duration: 2000 })
+          } catch (err) {
+            toast.error(err as Error)
+          }
+        }}
+      />
+    ))
   }
 
   async function handleRestart(session: Session) {
-    try {
-      await sync.session.restart(session.id)
-      toast.show({ message: "Session restarted", variant: "success", duration: 2000 })
-      sync.refresh()
-    } catch (err) {
-      toast.error(err as Error)
-    }
+    const isClaudeSession = session.tool === "claude"
+    const warningMsg = isClaudeSession
+      ? "This will end the current Claude conversation and start fresh."
+      : "This will kill the running process and start a new one."
+
+    dialog.replace(() => (
+      <DialogSelect
+        title={`Restart "${session.title}"?`}
+        options={[
+          { title: `Restart — ${warningMsg}`, value: "restart" },
+        ]}
+        onSelect={async () => {
+          dialog.clear()
+          try {
+            await sync.session.restart(session.id)
+            toast.show({ message: "Session restarted", variant: "success", duration: 2000 })
+            sync.refresh()
+          } catch (err) {
+            toast.error(err as Error)
+          }
+        }}
+      />
+    ))
   }
 
   async function handleShortcut(shortcut: ReturnType<typeof getShortcuts>[0]) {
@@ -933,6 +961,10 @@ export function Home() {
         <box flexDirection="column" alignItems="center">
           <text fg={theme.text}>d</text>
           <text fg={theme.textMuted}>delete</text>
+        </box>
+        <box flexDirection="column" alignItems="center">
+          <text fg={theme.warning}>r</text>
+          <text fg={theme.warning}>restart</text>
         </box>
         <box flexDirection="column" alignItems="center">
           <text fg={theme.text}>R</text>
