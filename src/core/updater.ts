@@ -9,6 +9,13 @@ interface GitHubRelease {
   tag_name: string
 }
 
+/** Validates that a version string is a valid semver (major.minor.patch) */
+const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/
+
+function validateVersion(version: string): boolean {
+  return SEMVER_PATTERN.test(version)
+}
+
 function compareVersions(current: string, latest: string): boolean {
   const currentParts = current.split(".").map(Number)
   const latestParts = latest.split(".").map(Number)
@@ -35,6 +42,7 @@ export async function checkForUpdate(): Promise<{ current: string; latest: strin
 
     const data = (await response.json()) as GitHubRelease
     const latest = data.tag_name.replace(/^v/, "")
+    if (!validateVersion(latest)) return null
     const current = pkg.version
 
     if (compareVersions(current, latest)) {
@@ -95,6 +103,9 @@ export function performUpdateSync(): void {
       throw new Error("No tag_name found in release data")
     }
     const version = tagName.replace(/^v/, "")
+    if (!validateVersion(version)) {
+      throw new Error(`Invalid version format: ${version}`)
+    }
 
     // 2. Detect platform and build download URL
     const { os: plat, arch } = detectPlatform()

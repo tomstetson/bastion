@@ -20,6 +20,15 @@ function log(...args: unknown[]) {
   try { fs.appendFileSync(logFile, msg) } catch {}
 }
 
+/** UUID v4 regex for validating session IDs at public API boundaries */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function validateSessionId(sessionId: string): void {
+  if (!UUID_PATTERN.test(sessionId)) {
+    throw new Error(`Invalid session ID format: ${sessionId}`)
+  }
+}
+
 // Name generation patterns
 const ADJECTIVES = [
   "swift", "bright", "calm", "deep", "eager", "fair", "gentle", "happy",
@@ -274,6 +283,7 @@ export class SessionManager {
    * stored in toolData. This ensures the ID Claude uses matches what we track.
    */
   async fork(options: SessionForkOptions): Promise<Session> {
+    validateSessionId(options.sourceSessionId)
     log("fork() called with options:", options)
     const storage = getStorage()
     const source = storage.getSession(options.sourceSessionId)
@@ -385,6 +395,7 @@ export class SessionManager {
    * Check if a session can be forked (has a tracked Claude session ID)
    */
   async canFork(sessionId: string): Promise<boolean> {
+    validateSessionId(sessionId)
     const session = getStorage().getSession(sessionId)
     if (!session) return false
     if (session.tool !== "claude") return false
@@ -395,6 +406,7 @@ export class SessionManager {
   }
 
   async delete(sessionId: string, options?: { deleteWorktree?: boolean }): Promise<void> {
+    validateSessionId(sessionId)
     const storage = getStorage()
     const session = storage.getSession(sessionId)
 
@@ -415,6 +427,7 @@ export class SessionManager {
   }
 
   async resume(sessionId: string): Promise<Session> {
+    validateSessionId(sessionId)
     const storage = getStorage()
     const session = storage.getSession(sessionId)
 
@@ -460,6 +473,7 @@ export class SessionManager {
   }
 
   async restart(sessionId: string): Promise<Session> {
+    validateSessionId(sessionId)
     const storage = getStorage()
     const session = storage.getSession(sessionId)
 
@@ -509,6 +523,7 @@ export class SessionManager {
    * Stop a session (kill tmux but keep record)
    */
   async stop(sessionId: string): Promise<void> {
+    validateSessionId(sessionId)
     const storage = getStorage()
     const session = storage.getSession(sessionId)
 
@@ -523,6 +538,7 @@ export class SessionManager {
   }
 
   async sendMessage(sessionId: string, message: string): Promise<void> {
+    validateSessionId(sessionId)
     const storage = getStorage()
     const session = storage.getSession(sessionId)
 
@@ -535,6 +551,7 @@ export class SessionManager {
   }
 
   async getOutput(sessionId: string, lines = 100): Promise<string> {
+    validateSessionId(sessionId)
     const storage = getStorage()
     const session = storage.getSession(sessionId)
 
@@ -558,6 +575,7 @@ export class SessionManager {
    * Attach to a session (takes over terminal)
    */
   attach(sessionId: string): void {
+    validateSessionId(sessionId)
     const storage = getStorage()
     const session = storage.getSession(sessionId)
 
@@ -573,22 +591,26 @@ export class SessionManager {
   }
 
   get(sessionId: string): Session | null {
+    validateSessionId(sessionId)
     return getStorage().getSession(sessionId)
   }
 
   updateTitle(sessionId: string, title: string): void {
+    validateSessionId(sessionId)
     const storage = getStorage()
     storage.updateSessionField(sessionId, "title", title)
     storage.touch()
   }
 
   moveToGroup(sessionId: string, groupPath: string): void {
+    validateSessionId(sessionId)
     const storage = getStorage()
     storage.updateSessionField(sessionId, "group_path", groupPath)
     storage.touch()
   }
 
   acknowledge(sessionId: string): void {
+    validateSessionId(sessionId)
     const storage = getStorage()
     storage.setAcknowledged(sessionId, true)
     storage.touch()
