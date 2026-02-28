@@ -273,7 +273,9 @@ export class Storage {
   }
 
   updateSessionField(id: string, field: string, value: unknown): void {
-    // Map TypeScript field names to SQL column names
+    // Map TypeScript field names to SQL column names.
+    // Also includes identity mappings for SQL column names used by callers.
+    // SECURITY: Unknown fields are rejected to prevent SQL injection.
     const columnMap: Record<string, string> = {
       projectPath: "project_path",
       groupPath: "group_path",
@@ -285,9 +287,23 @@ export class Storage {
       worktreePath: "worktree_path",
       worktreeRepo: "worktree_repo",
       worktreeBranch: "worktree_branch",
-      toolData: "tool_data"
+      toolData: "tool_data",
+      // Identity mappings for callers passing SQL column names directly
+      title: "title",
+      tool_data: "tool_data",
+      last_accessed: "last_accessed",
+      group_path: "group_path",
+      project_path: "project_path",
+      sort_order: "sort_order",
+      tmux_session: "tmux_session",
+      created_at: "created_at",
+      parent_session_id: "parent_session_id",
+      worktree_path: "worktree_path",
+      worktree_repo: "worktree_repo",
+      worktree_branch: "worktree_branch"
     }
-    const column = columnMap[field] ?? field
+    const column = columnMap[field]
+    if (!column) throw new Error(`Unknown session field: ${field}`)
     const stmt = this.db.prepare(`UPDATE sessions SET ${column} = ? WHERE id = ?`)
     stmt.run(value as string | number | null, id)
   }
