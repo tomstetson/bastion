@@ -321,7 +321,7 @@ export function copySessionToProject(
   try {
     // Create target directory if it doesn't exist
     if (!existsSync(targetDir)) {
-      mkdirSync(targetDir, { recursive: true })
+      mkdirSync(targetDir, { recursive: true, mode: 0o700 })
     }
 
     // Copy the session file

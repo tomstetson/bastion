@@ -103,7 +103,7 @@ export function performUpdateSync(): void {
 
     // 3. Create temp directory
     const tmpDir = path.join(os.tmpdir(), `${APP}-update-${process.pid}`)
-    fs.mkdirSync(tmpDir, { recursive: true })
+    fs.mkdirSync(tmpDir, { recursive: true, mode: 0o700 })
 
     // 4. Download tarball (no shell, argument array)
     console.log(`Downloading v${version} for ${plat}-${arch}...`)
@@ -137,7 +137,7 @@ export function performUpdateSync(): void {
       throw new Error("Binary not found in archive")
     }
 
-    fs.mkdirSync(installDir, { recursive: true })
+    fs.mkdirSync(installDir, { recursive: true, mode: 0o700 })
     fs.copyFileSync(binaryPath, path.join(installDir, APP))
     fs.chmodSync(path.join(installDir, APP), 0o755)
 
