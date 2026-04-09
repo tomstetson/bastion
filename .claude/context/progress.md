@@ -1,9 +1,9 @@
 # Task State
 
 ## In Progress
-- Rebrand to bastion + security hardening + destructive action safeguards (Phase 1.1 rebrand done, Phases 2-3 next)
+- Task 2: Delete TUI code and old dependencies
 
 ## Next Up
-1. Phase 2: Security fixes (5 commits)
-2. Phase 3: Destructive action safeguards (3 commits)
-3. Fresh README + CLAUDE.md rewrite
+1. Task 3: Adapt core types for Electron
+2. Task 4: Storage layer (better-sqlite3)
+3. Task 5: Ring Buffer implementation
