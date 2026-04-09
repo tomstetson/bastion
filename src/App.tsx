@@ -9,6 +9,7 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import Toolbar from "./components/Toolbar/Toolbar";
 import TerminalGrid from "./components/Grid/TerminalGrid";
 import NewSessionDialog from "./components/Dialogs/NewSessionDialog";
+import { useKeyboard } from "./hooks/useKeyboard";
 import { useProjectsStore } from "./store/projects";
 import { useSessionsStore } from "./store/sessions";
 import { useUIStore } from "./store/ui";
@@ -25,6 +26,21 @@ export default function App() {
 
   // Dialog visibility state
   const [showNewSession, setShowNewSession] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+
+  // Global keyboard shortcuts
+  useKeyboard({
+    onNewSession: () => setShowNewSession(true),
+    onToggleCommandPalette: () => setShowCommandPalette((prev) => !prev),
+    onEscape: () => {
+      // Close dialogs in priority order
+      if (showCommandPalette) {
+        setShowCommandPalette(false);
+      } else if (showNewSession) {
+        setShowNewSession(false);
+      }
+    },
+  });
 
   // Active project object
   const activeProject = useMemo(
