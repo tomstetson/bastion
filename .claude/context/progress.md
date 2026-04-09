@@ -1,8 +1,7 @@
 # Task State
 
 ## In Progress
-_None_
+- Task 26: Build and package verification
 
 ## Next Up
-1. Task 11: IPC Bridge
-2. Task 12: Zustand state management
+_None_

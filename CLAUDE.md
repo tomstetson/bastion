@@ -1,95 +1,98 @@
 # Bastion
 
-Security-hardened terminal agent orchestrator. Forked from agent-view by Frayo44.
+Security-hardened terminal agent orchestrator. Electron desktop app with embedded terminals.
 
 ## Tech Stack
 
-- **Runtime:** Bun
-- **Framework:** Solid.js
-- **UI:** OpenTUI (terminal UI framework)
-- **Storage:** SQLite (via bun:sqlite)
-- **Session Management:** tmux
+- **Runtime:** Node.js (via Electron ~35)
+- **Framework:** React 19 + Zustand (state management)
+- **Terminal:** xterm.js + node-pty (real PTY processes)
+- **Storage:** SQLite (via better-sqlite3, WAL mode)
+- **Build:** Electron Forge + Vite
+- **Testing:** Vitest
+
+## Commands
+
+```bash
+npm install          # Install dependencies
+npm start            # Launch dev mode (Electron + Vite HMR)
+npm test             # Run all tests (vitest)
+npx vitest run tests/unit/     # Unit tests only
+npx vitest run tests/integration/  # Integration tests only
+npm run package      # Package app (Electron Forge)
+npm run build        # Make distributable (DMG/ZIP)
+npm run typecheck    # TypeScript type checking
+```
 
 ## Project Structure
 
 ```
-src/
-├── cli/           # CLI entry point
-├── core/          # Core business logic
-│   ├── git.ts     # Git/worktree utilities
-│   ├── history.ts # History manager for autocomplete
-│   ├── session.ts # Session lifecycle management
-│   ├── storage.ts # SQLite storage layer
-│   ├── tmux.ts    # tmux session control
-│   └── types.ts   # TypeScript types
-└── tui/           # Terminal UI
-    ├── component/ # Reusable components (dialogs)
-    ├── context/   # Solid.js contexts (theme, sync, routes)
-    ├── routes/    # Page components (home, session)
-    └── ui/        # Base UI components (dialog, toast, autocomplete)
+electron/              # Main process (Node.js)
+├── main.ts            # App entry, window creation, lifecycle
+├── preload.ts         # Context bridge (renderer ↔ main)
+├── ipc-handlers.ts    # IPC message handlers
+└── core/              # Core business logic
+    ├── types.ts       # Shared TypeScript types
+    ├── storage.ts     # SQLite storage layer (better-sqlite3)
+    ├── session-manager.ts  # Session lifecycle orchestration
+    ├── pty-manager.ts      # PTY process management (node-pty)
+    ├── ring-buffer.ts      # Circular buffer for terminal output
+    ├── status-detector.ts  # Session status heuristics
+    ├── resume-manager.ts   # Session resume/restore logic
+    ├── git.ts              # Git worktree operations
+    ├── claude.ts           # Claude Code integration
+    └── patterns/           # Status detection regex patterns
+
+src/                   # Renderer process (React)
+├── App.tsx            # Root React component
+├── renderer.tsx       # Entry point
+├── index.html         # HTML shell
+├── components/        # UI components
+│   ├── Sidebar/       # Project/session sidebar
+│   ├── Toolbar/       # Top toolbar
+│   ├── Grid/          # Terminal grid layout
+│   ├── Dialogs/       # New session, rename, command palette
+│   └── ContextMenu.tsx
+├── hooks/             # React hooks (terminal, keyboard, grid, context menu)
+├── store/             # Zustand stores (projects, sessions, UI)
+├── styles/            # CSS (theme.css)
+└── types/             # TypeScript declarations
+
+tests/
+├── unit/              # Unit tests (storage, types, status-detector, etc.)
+└── integration/       # Integration tests (session lifecycle)
 ```
 
 ## Key Features
 
-- **Session Management:** Create, stop, restart, delete AI agent sessions
-- **Multiple Tools:** Claude Code, OpenCode, Gemini, Codex, Custom commands
+- **Session Management:** Create, stop, restart, resume, delete AI agent sessions
+- **Multiple Tools:** Claude Code, OpenCode, Gemini, Codex, Shell, Custom commands
+- **Real Terminals:** Each session runs in a real PTY via node-pty, rendered with xterm.js
+- **Grid Layout:** 1x1, 2x1, 2x2, 3x2, and auto grid layouts per project
 - **Git Worktrees:** Create sessions in isolated git worktrees
-- **Auto-suggestions:** Fuzzy search for previously used paths and branch names
-- **Status Monitoring:** Real-time session status (running, waiting, idle, error)
-- **Security Hardened:** No shell injection, restrictive directory permissions, symlink-safe signal files, SQL field allowlists, input validation
-
-## Installation
-
-### Quick Install
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/tomstetson/bastion/main/install.sh | bash
-```
-
-### Manual Install
-
-```bash
-git clone https://github.com/tomstetson/bastion.git
-cd bastion
-bun install
-bun run build
-```
-
-### Compile to Standalone Binary
-
-```bash
-bun run compile        # Compile for current platform
-bun run compile:all    # Compile for all platforms (darwin/linux, x64/arm64)
-```
-
-### Uninstall
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/tomstetson/bastion/main/uninstall.sh | bash
-```
-
-## Development
-
-```bash
-bun install      # Install dependencies
-bun run dev      # Run in development mode
-bun run build    # Build for production
-bun run compile  # Compile standalone binary
-bun test         # Run tests
-```
+- **Status Monitoring:** Real-time session status via terminal output analysis
+- **Window Persistence:** Window position/size saved and restored across launches
+- **Keyboard Shortcuts:** Cmd+N (new session), Cmd+K (command palette), Cmd+W (close)
+- **Context Menus:** Right-click actions on sessions (stop, restart, rename, delete)
 
 ## Important Files
 
-- `src/tui/component/dialog-new.tsx` - New session dialog with tool selection
-- `src/tui/routes/home.tsx` - Main home screen with session list
-- `src/core/session.ts` - Session creation and lifecycle
-- `src/core/git.ts` - Git worktree operations
+- `electron/main.ts` — App entry point, window creation, state persistence
+- `electron/ipc-handlers.ts` — All renderer-to-main IPC message handlers
+- `electron/core/session-manager.ts` — Session lifecycle orchestration
+- `electron/core/pty-manager.ts` — PTY process spawning and management
+- `electron/core/storage.ts` — SQLite persistence layer
+- `src/App.tsx` — Root React component with layout
+- `src/store/sessions.ts` — Zustand session state store
+- `src/components/Grid/` — Terminal grid with xterm.js tiles
+- `src/components/Dialogs/` — New session and command palette dialogs
+- `forge.config.ts` — Electron Forge build configuration
 
 ## Security Notes
 
-- All subprocess calls use `execFile()` / `spawnSync()` with argument arrays — never shell strings
+- PTY processes spawned with argument arrays via node-pty — never shell strings
 - Config directories created with mode `0o700`
-- Signal files stored in `~/.bastion/` (not `/tmp/`) to prevent symlink attacks
-- SQL field names validated against an allowlist before interpolation
-- Session IDs validated as UUID format at public method boundaries
-- Release version tags validated as semver before use in download URLs
+- SQLite uses parameterized queries exclusively — no string interpolation
+- Session IDs validated as UUID format at all public boundaries
+- Context isolation enabled; nodeIntegration disabled in renderer
+- Preload script exposes only specific IPC channels via contextBridge
