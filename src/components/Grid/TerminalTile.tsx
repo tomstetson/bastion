@@ -8,11 +8,16 @@
  * - Default (#30363d) otherwise
  */
 
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import type { Session, SessionStatus } from "../../../electron/core/types";
 import { useTerminal } from "../../hooks/useTerminal";
 import { useUIStore } from "../../store/ui";
 import { useSessionsStore } from "../../store/sessions";
+
+/** Extracts the first N lines from a string */
+function firstLines(text: string, n: number): string {
+  return text.split("\n").slice(0, n).join("\n");
+}
 
 interface TerminalTileProps {
   session: Session;
@@ -54,11 +59,24 @@ export default function TerminalTile({ session }: TerminalTileProps) {
   const setFocusedTile = useUIStore((s) => s.setFocusedTile);
   const toggleMaximized = useUIStore((s) => s.toggleMaximized);
   const stopSession = useSessionsStore((s) => s.stopSession);
+  const resumeSession = useSessionsStore((s) => s.resumeSession);
+  const deleteSession = useSessionsStore((s) => s.deleteSession);
 
   const { containerRef } = useTerminal({ sessionId: session.id });
 
   const isFocused = focusedTileSessionId === session.id;
   const isWaiting = session.status === "waiting";
+  const isStopped = session.status === "stopped";
+
+  const handleResume = useCallback(async () => {
+    await resumeSession(session.id);
+  }, [resumeSession, session.id]);
+
+  const handleRemove = useCallback(async () => {
+    if (window.confirm(`Remove session "${session.name}"? This cannot be undone.`)) {
+      await deleteSession(session.id);
+    }
+  }, [deleteSession, session.id, session.name]);
 
   const borderColor = useMemo(() => {
     if (isFocused) return "#58a6ff";
@@ -186,16 +204,102 @@ export default function TerminalTile({ session }: TerminalTileProps) {
         </button>
       </div>
 
-      {/* Terminal body */}
-      <div
-        ref={containerRef}
-        style={{
-          flex: 1,
-          minHeight: 0,
-          padding: 4,
-        }}
-        onFocus={() => setFocusedTile(session.id)}
-      />
+      {/* Terminal body or stopped state */}
+      {isStopped ? (
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            padding: 20,
+          }}
+        >
+          <span style={{ fontSize: 13, color: "#8b949e", fontWeight: 500 }}>
+            Session ended
+          </span>
+
+          {/* Output snapshot preview */}
+          {session.resumeData?.outputSnapshot && (
+            <pre
+              style={{
+                fontSize: 11,
+                color: "#484f58",
+                background: "#0d1117",
+                border: "1px solid #21262d",
+                borderRadius: 4,
+                padding: "8px 12px",
+                maxWidth: "100%",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-all",
+                margin: 0,
+                lineHeight: 1.4,
+              }}
+            >
+              {firstLines(session.resumeData.outputSnapshot, 2)}
+            </pre>
+          )}
+
+          <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+            {/* Resume button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleResume();
+              }}
+              disabled={!session.resumeData}
+              style={{
+                padding: "6px 16px",
+                borderRadius: 4,
+                border: session.resumeData ? "1px solid #238636" : "1px solid #30363d",
+                background: session.resumeData ? "#238636" : "#21262d",
+                color: session.resumeData ? "#ffffff" : "#484f58",
+                cursor: session.resumeData ? "pointer" : "default",
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+              title={session.resumeData ? "Resume this session" : "No resume data available"}
+            >
+              Resume
+            </button>
+
+            {/* Remove button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemove();
+              }}
+              style={{
+                padding: "6px 16px",
+                borderRadius: 4,
+                border: "1px solid #f8514922",
+                background: "transparent",
+                color: "#f85149",
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: 500,
+              }}
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          ref={containerRef}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            padding: 4,
+          }}
+          onFocus={() => setFocusedTile(session.id)}
+        />
+      )}
     </div>
   );
 }
