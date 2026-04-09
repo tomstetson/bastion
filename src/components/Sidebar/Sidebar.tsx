@@ -4,13 +4,18 @@
  * Polls sessions every 2 seconds to keep status up to date.
  */
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useProjectsStore } from "../../store/projects";
 import { useSessionsStore } from "../../store/sessions";
 import { useUIStore } from "../../store/ui";
 import StatusFilters from "./StatusFilters";
 import ProjectTree from "./ProjectTree";
 import SessionItem from "./SessionItem";
+import ContextMenu from "../ContextMenu";
+import RenameDialog from "../Dialogs/RenameDialog";
+import { useContextMenu } from "../../hooks/useContextMenu";
+import type { ContextMenuItem } from "../../hooks/useContextMenu";
+import type { Project, Session } from "../../../electron/core/types";
 
 interface SidebarProps {
   onNewSession: () => void;
@@ -19,10 +24,17 @@ interface SidebarProps {
 export default function Sidebar({ onNewSession }: SidebarProps) {
   const projects = useProjectsStore((s) => s.projects);
   const fetchProjects = useProjectsStore((s) => s.fetchProjects);
+  const renameProject = useProjectsStore((s) => s.renameProject);
+  const deleteProject = useProjectsStore((s) => s.deleteProject);
 
   const sessions = useSessionsStore((s) => s.sessions);
   const fetchAllSessions = useSessionsStore((s) => s.fetchAllSessions);
   const getStatusCounts = useSessionsStore((s) => s.getStatusCounts);
+  const stopSession = useSessionsStore((s) => s.stopSession);
+  const restartSession = useSessionsStore((s) => s.restartSession);
+  const resumeSession = useSessionsStore((s) => s.resumeSession);
+  const deleteSession = useSessionsStore((s) => s.deleteSession);
+  const renameSession = useSessionsStore((s) => s.renameSession);
 
   const activeProjectId = useUIStore((s) => s.activeProjectId);
   const focusedTileSessionId = useUIStore((s) => s.focusedTileSessionId);
@@ -31,6 +43,16 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
   const setActiveProject = useUIStore((s) => s.setActiveProject);
   const setFocusedTile = useUIStore((s) => s.setFocusedTile);
   const setStatusFilter = useUIStore((s) => s.setStatusFilter);
+
+  // Rename dialog state
+  const [renameTarget, setRenameTarget] = useState<{
+    type: "project" | "session";
+    id: string;
+    name: string;
+  } | null>(null);
+
+  // Context menu for standalone sessions
+  const standaloneCtx = useContextMenu();
 
   // Fetch on mount
   useEffect(() => {
@@ -170,6 +192,23 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
                 setActiveProject(session.projectId);
               }
             }}
+            onRenameProject={(p) => setRenameTarget({ type: "project", id: p.id, name: p.name })}
+            onDeleteProject={(p) => {
+              if (window.confirm(`Delete project "${p.name}"? Sessions will become standalone.`)) {
+                deleteProject(p.id);
+              }
+            }}
+            onRenameSession={(s) => setRenameTarget({ type: "session", id: s.id, name: s.name })}
+            onStopSession={(s) => {
+              if (window.confirm(`Stop session "${s.name}"?`)) stopSession(s.id);
+            }}
+            onRestartSession={(s) => restartSession(s.id)}
+            onResumeSession={(s) => resumeSession(s.id)}
+            onDeleteSession={(s) => {
+              if (window.confirm(`Delete session "${s.name}"? This cannot be undone.`)) {
+                deleteSession(s.id);
+              }
+            }}
           />
         </div>
 
@@ -205,6 +244,43 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
                     setFocusedTile(session.id);
                     setActiveProject(null);
                   }}
+                  onContextMenu={(e) => {
+                    const items: Array<ContextMenuItem | null> = [
+                      {
+                        label: "Rename",
+                        action: () => setRenameTarget({ type: "session", id: session.id, name: session.name }),
+                      },
+                      null,
+                      {
+                        label: "Stop",
+                        action: () => {
+                          if (window.confirm(`Stop session "${session.name}"?`)) stopSession(session.id);
+                        },
+                        disabled: session.status === "stopped",
+                      },
+                      {
+                        label: "Restart",
+                        action: () => restartSession(session.id),
+                        disabled: session.status === "stopped",
+                      },
+                      {
+                        label: "Resume",
+                        action: () => resumeSession(session.id),
+                        disabled: session.status !== "stopped" || !session.resumeData,
+                      },
+                      null,
+                      {
+                        label: "Delete",
+                        action: () => {
+                          if (window.confirm(`Delete session "${session.name}"? This cannot be undone.`)) {
+                            deleteSession(session.id);
+                          }
+                        },
+                        danger: true,
+                      },
+                    ];
+                    standaloneCtx.show(e, items);
+                  }}
                 />
               ))}
             </div>
@@ -225,6 +301,31 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
         {sessions.length} session{sessions.length !== 1 ? "s" : ""},{" "}
         {activeCount} active
       </div>
+
+      {/* Standalone context menu */}
+      {standaloneCtx.visible && (
+        <ContextMenu
+          x={standaloneCtx.x}
+          y={standaloneCtx.y}
+          items={standaloneCtx.items}
+          onHide={standaloneCtx.hide}
+        />
+      )}
+
+      {/* Rename dialog */}
+      {renameTarget && (
+        <RenameDialog
+          currentName={renameTarget.name}
+          onRename={(newName) => {
+            if (renameTarget.type === "project") {
+              renameProject(renameTarget.id, newName);
+            } else {
+              renameSession(renameTarget.id, newName);
+            }
+          }}
+          onClose={() => setRenameTarget(null)}
+        />
+      )}
     </aside>
   );
 }

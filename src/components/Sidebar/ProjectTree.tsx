@@ -13,6 +13,9 @@
 import React, { useState, useMemo } from "react";
 import type { Project, Session, SessionStatus } from "../../../electron/core/types";
 import SessionItem from "./SessionItem";
+import ContextMenu from "../ContextMenu";
+import { useContextMenu } from "../../hooks/useContextMenu";
+import type { ContextMenuItem } from "../../hooks/useContextMenu";
 
 const STATUS_COLORS: Record<SessionStatus, string> = {
   running: "#3fb950",
@@ -32,6 +35,13 @@ interface ProjectTreeProps {
   focusedSessionId: string | null;
   onSelectProject: (projectId: string) => void;
   onSelectSession: (sessionId: string) => void;
+  onRenameProject?: (project: Project) => void;
+  onDeleteProject?: (project: Project) => void;
+  onRenameSession?: (session: Session) => void;
+  onStopSession?: (session: Session) => void;
+  onRestartSession?: (session: Session) => void;
+  onResumeSession?: (session: Session) => void;
+  onDeleteSession?: (session: Session) => void;
 }
 
 export default function ProjectTree({
@@ -41,7 +51,17 @@ export default function ProjectTree({
   focusedSessionId,
   onSelectProject,
   onSelectSession,
+  onRenameProject,
+  onDeleteProject,
+  onRenameSession,
+  onStopSession,
+  onRestartSession,
+  onResumeSession,
+  onDeleteSession,
 }: ProjectTreeProps) {
+  // Context menu state
+  const ctxMenu = useContextMenu();
+
   // Track which projects are expanded; active project is always expanded
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -78,6 +98,16 @@ export default function ProjectTree({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      {/* Context menu */}
+      {ctxMenu.visible && (
+        <ContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          items={ctxMenu.items}
+          onHide={ctxMenu.hide}
+        />
+      )}
+
       {projects.map((project) => {
         const isActive = activeProjectId === project.id;
         const isExpanded = isActive || expanded.has(project.id);
@@ -92,6 +122,21 @@ export default function ProjectTree({
               onClick={() => {
                 onSelectProject(project.id);
                 if (!isExpanded) toggleExpand(project.id);
+              }}
+              onContextMenu={(e) => {
+                const items: Array<ContextMenuItem | null> = [
+                  {
+                    label: "Rename",
+                    action: () => onRenameProject?.(project),
+                  },
+                  null,
+                  {
+                    label: "Delete Project",
+                    action: () => onDeleteProject?.(project),
+                    danger: true,
+                  },
+                ];
+                ctxMenu.show(e, items);
               }}
               style={{
                 display: "flex",
@@ -213,6 +258,37 @@ export default function ProjectTree({
                     session={session}
                     isActive={focusedSessionId === session.id}
                     onClick={() => onSelectSession(session.id)}
+                    onContextMenu={(e) => {
+                      const items: Array<ContextMenuItem | null> = [
+                        {
+                          label: "Rename",
+                          action: () => onRenameSession?.(session),
+                        },
+                        null,
+                        {
+                          label: "Stop",
+                          action: () => onStopSession?.(session),
+                          disabled: session.status === "stopped",
+                        },
+                        {
+                          label: "Restart",
+                          action: () => onRestartSession?.(session),
+                          disabled: session.status === "stopped",
+                        },
+                        {
+                          label: "Resume",
+                          action: () => onResumeSession?.(session),
+                          disabled: session.status !== "stopped" || !session.resumeData,
+                        },
+                        null,
+                        {
+                          label: "Delete",
+                          action: () => onDeleteSession?.(session),
+                          danger: true,
+                        },
+                      ];
+                      ctxMenu.show(e, items);
+                    }}
                   />
                 ))}
                 {overflow > 0 && (

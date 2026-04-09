@@ -18,16 +18,19 @@ interface SessionItemProps {
   session: Session;
   isActive: boolean;
   onClick: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }
 
 export default function SessionItem({
   session,
   isActive,
   onClick,
+  onContextMenu,
 }: SessionItemProps) {
   return (
     <div
       onClick={onClick}
+      onContextMenu={onContextMenu}
       style={{
         display: "flex",
         alignItems: "center",
