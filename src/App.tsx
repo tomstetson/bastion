@@ -9,6 +9,7 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import Toolbar from "./components/Toolbar/Toolbar";
 import TerminalGrid from "./components/Grid/TerminalGrid";
 import NewSessionDialog from "./components/Dialogs/NewSessionDialog";
+import CommandPalette from "./components/Dialogs/CommandPalette";
 import { useKeyboard } from "./hooks/useKeyboard";
 import { useProjectsStore } from "./store/projects";
 import { useSessionsStore } from "./store/sessions";
@@ -117,6 +118,11 @@ export default function App() {
       {/* New Session Dialog */}
       {showNewSession && (
         <NewSessionDialog onClose={() => setShowNewSession(false)} />
+      )}
+
+      {/* Command Palette */}
+      {showCommandPalette && (
+        <CommandPalette onClose={() => setShowCommandPalette(false)} />
       )}
     </div>
   );
