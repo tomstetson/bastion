@@ -1,0 +1,106 @@
+/**
+ * Top toolbar with project breadcrumb and grid layout switcher.
+ *
+ * Left side: active project name + session count (or placeholder text)
+ * Right side: layout buttons (1x1, 2x1, 2x2, 3x2, auto)
+ */
+
+import React from "react";
+import type { Project, GridLayout } from "../../../electron/core/types";
+
+const LAYOUTS: Array<{ value: GridLayout; label: string }> = [
+  { value: "1x1", label: "1x1" },
+  { value: "2x1", label: "2x1" },
+  { value: "2x2", label: "2x2" },
+  { value: "3x2", label: "3x2" },
+  { value: "auto", label: "Auto" },
+];
+
+interface ToolbarProps {
+  activeProject: Project | null;
+  sessionCount: number;
+  activeLayout: GridLayout;
+  onLayoutChange: (layout: GridLayout) => void;
+}
+
+export default function Toolbar({
+  activeProject,
+  sessionCount,
+  activeLayout,
+  onLayoutChange,
+}: ToolbarProps) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "8px 12px",
+        background: "#161b22",
+        borderBottom: "1px solid #21262d",
+        flexShrink: 0,
+      }}
+    >
+      {/* Left: breadcrumb */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {activeProject ? (
+          <>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#c9d1d9",
+              }}
+            >
+              {activeProject.name}
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                color: "#484f58",
+              }}
+            >
+              {sessionCount} session{sessionCount !== 1 ? "s" : ""}
+            </span>
+          </>
+        ) : (
+          <span
+            style={{
+              fontSize: 13,
+              color: "#484f58",
+              fontStyle: "italic",
+            }}
+          >
+            Select a project or session
+          </span>
+        )}
+      </div>
+
+      {/* Right: layout switcher */}
+      <div style={{ display: "flex", gap: 2 }}>
+        {LAYOUTS.map(({ value, label }) => {
+          const isActive = activeLayout === value;
+          return (
+            <button
+              key={value}
+              onClick={() => onLayoutChange(value)}
+              style={{
+                fontSize: 11,
+                fontWeight: 500,
+                padding: "3px 8px",
+                borderRadius: 4,
+                border: isActive ? "1px solid #58a6ff" : "1px solid #30363d",
+                background: isActive ? "#58a6ff22" : "transparent",
+                color: isActive ? "#58a6ff" : "#8b949e",
+                cursor: "pointer",
+                transition: "all 100ms",
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
