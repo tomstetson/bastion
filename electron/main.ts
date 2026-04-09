@@ -37,9 +37,16 @@ function initCore(): void {
 }
 
 function createWindow(): void {
+  // Read saved window bounds so the app reopens where the user left it
+  const tempStorage = new Storage();
+  const savedState = tempStorage.getWindowState();
+  tempStorage.close();
+
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
+    x: savedState?.x,
+    y: savedState?.y,
+    width: savedState?.width ?? 1400,
+    height: savedState?.height ?? 900,
     minWidth: 800,
     minHeight: 600,
     titleBarStyle: "hiddenInset",
@@ -50,6 +57,28 @@ function createWindow(): void {
       nodeIntegration: false,
     },
   });
+
+  // Persist window bounds on move/resize (debounced 1s to avoid DB churn)
+  let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+  const debouncedSave = () => {
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+      if (!mainWindow) return;
+      const bounds = mainWindow.getBounds();
+      const s = new Storage();
+      s.saveWindowState({
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        activeProjectId: null,
+        sidebarWidth: 220,
+      });
+      s.close();
+    }, 1000);
+  };
+  mainWindow.on("resize", debouncedSave);
+  mainWindow.on("move", debouncedSave);
 
   // In development, load from Vite dev server; in production, load built file.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
