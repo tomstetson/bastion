@@ -3,7 +3,9 @@ node_modules/
 
 # Build output
 dist/
-bin/
+out/
+.vite/
+dist-electron/
 
 # Database
 *.db
@@ -12,6 +14,9 @@ bin/
 
 # Bun
 bun.lockb
+
+# Electron Forge / Packaging
+*.dmg
 
 # OS
 .DS_Store
@@ -35,3 +40,6 @@ coverage/
 
 # Git Worktrees
 .worktrees/
+
+# Superpowers
+.superpowers/
