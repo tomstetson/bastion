@@ -100,25 +100,37 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
         overflow: "hidden",
       }}
     >
+      {/* Drag region for macOS title bar */}
+      <div
+        style={{
+          height: 38,
+          flexShrink: 0,
+          // @ts-expect-error -- Electron-specific CSS property for window dragging
+          WebkitAppRegion: "drag",
+        }}
+      />
+
       {/* Header */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "16px 12px 12px",
+          padding: "0 12px 12px",
           flexShrink: 0,
         }}
       >
         <h1
           style={{
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
+            fontSize: 14,
+            fontWeight: 800,
+            letterSpacing: "0.14em",
             color: "#58a6ff",
             margin: 0,
+            fontFamily: "'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace",
           }}
         >
+          <span style={{ color: "#3fb950" }}>&#9632;</span>{" "}
           BASTION
         </h1>
         <button

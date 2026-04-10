@@ -2,6 +2,9 @@
  * A single terminal tile in the grid.
  * Shows a header bar with session info and a terminal body powered by xterm.js.
  *
+ * When a session is stopped, the xterm.js terminal is fully unmounted to avoid
+ * "ghost" output. A clean stopped state with Resume/Remove buttons is shown instead.
+ *
  * Border color reflects state:
  * - Blue (#58a6ff) when focused
  * - Amber (#d29922) when waiting for input
@@ -13,11 +16,6 @@ import type { Session, SessionStatus } from "../../../electron/core/types";
 import { useTerminal } from "../../hooks/useTerminal";
 import { useUIStore } from "../../store/ui";
 import { useSessionsStore } from "../../store/sessions";
-
-/** Extracts the first N lines from a string */
-function firstLines(text: string, n: number): string {
-  return text.split("\n").slice(0, n).join("\n");
-}
 
 interface TerminalTileProps {
   session: Session;
@@ -54,6 +52,27 @@ function relativeTime(timestamp: number): string {
   return `${days}d ago`;
 }
 
+/**
+ * Inner component that mounts the xterm.js terminal.
+ * Extracted so the useTerminal hook is only called (and the Terminal instance
+ * only created) when the session is NOT stopped.
+ */
+function TerminalBody({ sessionId, onFocus }: { sessionId: string; onFocus: () => void }) {
+  const { containerRef } = useTerminal({ sessionId });
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        flex: 1,
+        minHeight: 0,
+        padding: 4,
+      }}
+      onFocus={onFocus}
+    />
+  );
+}
+
 export default function TerminalTile({ session }: TerminalTileProps) {
   const focusedTileSessionId = useUIStore((s) => s.focusedTileSessionId);
   const setFocusedTile = useUIStore((s) => s.setFocusedTile);
@@ -61,8 +80,6 @@ export default function TerminalTile({ session }: TerminalTileProps) {
   const stopSession = useSessionsStore((s) => s.stopSession);
   const resumeSession = useSessionsStore((s) => s.resumeSession);
   const deleteSession = useSessionsStore((s) => s.deleteSession);
-
-  const { containerRef } = useTerminal({ sessionId: session.id });
 
   const isFocused = focusedTileSessionId === session.id;
   const isWaiting = session.status === "waiting";
@@ -204,7 +221,7 @@ export default function TerminalTile({ session }: TerminalTileProps) {
         </button>
       </div>
 
-      {/* Terminal body or stopped state */}
+      {/* Terminal body (unmounted when stopped) or clean stopped state */}
       {isStopped ? (
         <div
           style={{
@@ -222,51 +239,40 @@ export default function TerminalTile({ session }: TerminalTileProps) {
             Session ended
           </span>
 
-          {/* Output snapshot preview */}
-          {session.resumeData?.outputSnapshot && (
-            <pre
-              style={{
-                fontSize: 11,
-                color: "#484f58",
-                background: "#0d1117",
-                border: "1px solid #21262d",
-                borderRadius: 4,
-                padding: "8px 12px",
-                maxWidth: "100%",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-all",
-                margin: 0,
-                lineHeight: 1.4,
-              }}
-            >
-              {firstLines(session.resumeData.outputSnapshot, 2)}
-            </pre>
-          )}
+          {/* Session name for context */}
+          <span
+            style={{
+              fontSize: 11,
+              color: "#484f58",
+              fontFamily: "'SF Mono', 'Menlo', monospace",
+            }}
+          >
+            {session.name}
+          </span>
 
           <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-            {/* Resume button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleResume();
-              }}
-              disabled={!session.resumeData}
-              style={{
-                padding: "6px 16px",
-                borderRadius: 4,
-                border: session.resumeData ? "1px solid #238636" : "1px solid #30363d",
-                background: session.resumeData ? "#238636" : "#21262d",
-                color: session.resumeData ? "#ffffff" : "#484f58",
-                cursor: session.resumeData ? "pointer" : "default",
-                fontSize: 12,
-                fontWeight: 600,
-              }}
-              title={session.resumeData ? "Resume this session" : "No resume data available"}
-            >
-              Resume
-            </button>
+            {/* Resume button — only enabled when resume data exists */}
+            {session.resumeData && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleResume();
+                }}
+                style={{
+                  padding: "6px 16px",
+                  borderRadius: 4,
+                  border: "1px solid #238636",
+                  background: "#238636",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+                title="Resume this session"
+              >
+                Resume
+              </button>
+            )}
 
             {/* Remove button */}
             <button
@@ -290,13 +296,8 @@ export default function TerminalTile({ session }: TerminalTileProps) {
           </div>
         </div>
       ) : (
-        <div
-          ref={containerRef}
-          style={{
-            flex: 1,
-            minHeight: 0,
-            padding: 4,
-          }}
+        <TerminalBody
+          sessionId={session.id}
           onFocus={() => setFocusedTile(session.id)}
         />
       )}

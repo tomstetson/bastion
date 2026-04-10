@@ -24,6 +24,8 @@ export default function App() {
 
   const activeProjectId = useUIStore((s) => s.activeProjectId);
   const statusFilter = useUIStore((s) => s.statusFilter);
+  const standaloneGridLayout = useUIStore((s) => s.standaloneGridLayout);
+  const setStandaloneGridLayout = useUIStore((s) => s.setStandaloneGridLayout);
 
   // Dialog visibility state
   const [showNewSession, setShowNewSession] = useState(false);
@@ -49,8 +51,8 @@ export default function App() {
     [projects, activeProjectId]
   );
 
-  // Current grid layout — from active project or default "auto"
-  const currentLayout: GridLayout = activeProject?.gridLayout ?? "auto";
+  // Current grid layout — from active project, or standalone preference
+  const currentLayout: GridLayout = activeProject?.gridLayout ?? standaloneGridLayout;
 
   // Sessions to display in the grid: filter by active project and status
   const gridSessions = useMemo(() => {
@@ -75,9 +77,12 @@ export default function App() {
     (layout: GridLayout) => {
       if (activeProject) {
         setLayout(activeProject.id, layout);
+      } else {
+        // No active project — store layout preference for standalone sessions
+        setStandaloneGridLayout(layout);
       }
     },
-    [activeProject, setLayout]
+    [activeProject, setLayout, setStandaloneGridLayout]
   );
 
   const handleNewSession = useCallback(() => {

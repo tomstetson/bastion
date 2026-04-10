@@ -32,74 +32,91 @@ export default function Toolbar({
   return (
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "8px 12px",
         background: "#161b22",
         borderBottom: "1px solid #21262d",
         flexShrink: 0,
       }}
     >
-      {/* Left: breadcrumb */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {activeProject ? (
-          <>
+      {/* Drag region for macOS title bar */}
+      <div
+        style={{
+          height: 38,
+          // @ts-expect-error -- Electron-specific CSS property for window dragging
+          WebkitAppRegion: "drag",
+        }}
+      />
+
+      {/* Toolbar content */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 12px 8px",
+        }}
+      >
+        {/* Left: breadcrumb */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {activeProject ? (
+            <>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#c9d1d9",
+                }}
+              >
+                {activeProject.name}
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: "#484f58",
+                }}
+              >
+                {sessionCount} session{sessionCount !== 1 ? "s" : ""}
+              </span>
+            </>
+          ) : (
             <span
               style={{
                 fontSize: 13,
-                fontWeight: 600,
-                color: "#c9d1d9",
-              }}
-            >
-              {activeProject.name}
-            </span>
-            <span
-              style={{
-                fontSize: 11,
                 color: "#484f58",
+                fontStyle: "italic",
               }}
             >
-              {sessionCount} session{sessionCount !== 1 ? "s" : ""}
+              Standalone sessions
             </span>
-          </>
-        ) : (
-          <span
-            style={{
-              fontSize: 13,
-              color: "#484f58",
-              fontStyle: "italic",
-            }}
-          >
-            Select a project or session
-          </span>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Right: layout switcher */}
-      <div style={{ display: "flex", gap: 2 }}>
-        {LAYOUTS.map(({ value, label }) => {
-          const isActive = activeLayout === value;
-          return (
-            <button
-              key={value}
-              onClick={() => onLayoutChange(value)}
-              style={{
-                fontSize: 11,
-                fontWeight: 500,
-                padding: "3px 8px",
-                borderRadius: 4,
-                border: isActive ? "1px solid #58a6ff" : "1px solid #30363d",
-                background: isActive ? "#58a6ff22" : "transparent",
-                color: isActive ? "#58a6ff" : "#8b949e",
-                cursor: "pointer",
-                transition: "all 100ms",
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
+        {/* Right: layout switcher */}
+        <div style={{ display: "flex", gap: 2 }}>
+          {LAYOUTS.map(({ value, label }) => {
+            const isActive = activeLayout === value;
+            return (
+              <button
+                key={value}
+                onClick={() => onLayoutChange(value)}
+                style={{
+                  fontSize: 11,
+                  fontWeight: 500,
+                  padding: "3px 8px",
+                  borderRadius: 4,
+                  border: isActive ? "1px solid #58a6ff" : "1px solid #30363d",
+                  background: isActive ? "#58a6ff22" : "transparent",
+                  color: isActive ? "#58a6ff" : "#8b949e",
+                  cursor: "pointer",
+                  transition: "all 100ms",
+                  // @ts-expect-error -- Electron-specific CSS property to allow button clicks in drag region
+                  WebkitAppRegion: "no-drag",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

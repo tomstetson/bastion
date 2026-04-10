@@ -5,6 +5,7 @@
  */
 
 import { create } from "zustand";
+import type { GridLayout } from "../../electron/core/types";
 
 interface UIState {
   activeProjectId: string | null;
@@ -12,11 +13,14 @@ interface UIState {
   maximizedSessionId: string | null;
   statusFilter: string | null;
   sidebarWidth: number;
+  /** Grid layout used when no project is active (standalone sessions). */
+  standaloneGridLayout: GridLayout;
   setActiveProject: (id: string | null) => void;
   setFocusedTile: (sessionId: string | null) => void;
   toggleMaximized: (sessionId: string | null) => void;
   setStatusFilter: (status: string | null) => void;
   setSidebarWidth: (width: number) => void;
+  setStandaloneGridLayout: (layout: GridLayout) => void;
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -25,6 +29,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   maximizedSessionId: null,
   statusFilter: null,
   sidebarWidth: 220,
+  standaloneGridLayout: "auto",
 
   setActiveProject: (id) => set({ activeProjectId: id }),
 
@@ -43,4 +48,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   },
 
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
+
+  setStandaloneGridLayout: (layout) => set({ standaloneGridLayout: layout }),
 }));
