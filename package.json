@@ -3,13 +3,15 @@
   "version": "1.0.0-alpha.0",
   "description": "Security-hardened terminal agent orchestrator",
   "main": ".vite/build/main.js",
-  "type": "module",
   "scripts": {
     "start": "electron-forge start",
+    "rebuild:electron": "electron-rebuild -f",
+    "rebuild:node": "npm rebuild better-sqlite3 node-pty",
     "build": "electron-forge make",
     "package": "electron-forge package",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "npx playwright test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -28,11 +30,14 @@
     "@electron-forge/maker-dmg": "^7.11.1",
     "@electron-forge/maker-zip": "^7.11.1",
     "@electron-forge/plugin-vite": "^7.11.1",
+    "@electron/rebuild": "^4.0.3",
+    "@playwright/test": "^1.59.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "electron": "~35.7.5",
+    "playwright": "^1.59.1",
     "typescript": "^5.9.3",
     "vite": "^8.0.7",
     "vitest": "^4.1.3"
