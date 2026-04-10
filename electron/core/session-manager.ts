@@ -407,10 +407,8 @@ export class SessionManager {
         const alive = this.isPTYAlive(session.id);
 
         if (!alive) {
-          // PTY gone — mark stopped if not already
-          if (session.status !== "stopped") {
-            this.storage.updateSessionStatus(session.id, "stopped");
-          }
+          // PTY gone — mark stopped (we already skipped stopped sessions above)
+          this.storage.updateSessionStatus(session.id, "stopped");
           continue;
         }
 
@@ -447,9 +445,8 @@ export class SessionManager {
         }
       } catch {
         // If PTY is gone or buffer inaccessible, mark stopped
-        if (session.status !== "stopped") {
-          this.storage.updateSessionStatus(session.id, "stopped");
-        }
+        // (we already skipped stopped sessions at the top of the loop)
+        this.storage.updateSessionStatus(session.id, "stopped");
       }
     }
   }
