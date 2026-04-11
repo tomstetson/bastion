@@ -4,7 +4,9 @@
   "description": "Security-hardened terminal agent orchestrator",
   "main": ".vite/build/main.js",
   "scripts": {
-    "start": "electron-forge start",
+    "prestart": "node scripts/ensure-electron-modules.js",
+    "start": "node scripts/dev-start.js",
+    "start:forge": "electron-forge start",
     "rebuild:electron": "electron-rebuild -f",
     "rebuild:node": "npm rebuild better-sqlite3 node-pty",
     "build": "electron-forge make",

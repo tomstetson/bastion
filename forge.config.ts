@@ -5,9 +5,6 @@ import { MakerZIP } from "@electron-forge/maker-zip";
 
 const config: ForgeConfig = {
   rebuildConfig: {
-    // Skip automatic native module rebuild — we manage this manually
-    // because better-sqlite3 ships prebuilds for system Node that
-    // conflict with Electron's ABI
     onlyModules: [],
   },
   packagerConfig: {

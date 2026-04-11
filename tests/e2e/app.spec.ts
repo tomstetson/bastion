@@ -90,7 +90,13 @@ test.afterAll(async () => {
     await viteServer.close();
   }
 
-  // Rebuild native modules back to system Node so `npm test` works afterward
+  // Rebuild native modules back to system Node so `npm test` works afterward.
+  // Clear Electron ABI markers first so ensure-electron-modules.js knows
+  // it needs to recompile next time Electron starts.
+  for (const mod of ["better-sqlite3", "node-pty"]) {
+    const marker = path.join(ROOT, "node_modules", mod, ".electron-abi-ok");
+    if (fs.existsSync(marker)) fs.unlinkSync(marker);
+  }
   execFileSync("npm", ["run", "rebuild:node"], {
     cwd: ROOT,
     stdio: "pipe",

@@ -80,6 +80,18 @@ function createWindow(): void {
   mainWindow.on("resize", debouncedSave);
   mainWindow.on("move", debouncedSave);
 
+  // Log renderer errors
+  mainWindow.webContents.on("did-fail-load", (_e, code, desc) => {
+    console.error(`[RENDERER] Failed to load: ${code} ${desc}`);
+  });
+  mainWindow.webContents.on("render-process-gone", (_e, details) => {
+    console.error(`[RENDERER] Process gone:`, details);
+  });
+  mainWindow.webContents.on("console-message", (e) => {
+    const prefix = ["LOG", "WARN", "ERROR"][e.level] || "LOG";
+    console.log(`[RENDERER ${prefix}] ${e.message}`);
+  });
+
   // In development, load from Vite dev server; in production, load built file.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -90,8 +102,20 @@ function createWindow(): void {
   }
 }
 
+// Log uncaught errors to help diagnose startup failures
+process.on("uncaughtException", (err) => {
+  console.error("[MAIN] Uncaught exception:", err);
+});
+process.on("unhandledRejection", (err) => {
+  console.error("[MAIN] Unhandled rejection:", err);
+});
+
 app.whenReady().then(() => {
-  initCore();
+  try {
+    initCore();
+  } catch (err) {
+    console.error("[MAIN] initCore failed:", err);
+  }
   createWindow();
 
   app.on("activate", () => {
