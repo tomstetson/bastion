@@ -1,108 +1,137 @@
 # Bastion
 
-Security-hardened terminal agent orchestrator. Run multiple AI coding agents in parallel and manage them from a single TUI dashboard.
+Native macOS app for managing multiple AI coding terminal sessions from a single window. Run Claude Code, Codex, Gemini, and other tools in parallel — organized by project with a tiled terminal grid.
 
-> Originally forked from [agent-view](https://github.com/frayo44/agent-view) by Frayo44
+> Originally inspired by [agent-view](https://github.com/frayo44/agent-view) by Frayo44. Rewritten as a native Electron app.
 
 ## Why Bastion?
 
-When working with AI coding agents, you often need to run multiple agents on different tasks — one refactoring a module, another writing tests, a third exploring a bug. Bastion lets you orchestrate all of them from one place instead of juggling terminal tabs.
-
-Bastion adds security hardening on top of the upstream agent-view project: no shell injection vectors, restrictive directory permissions, symlink-safe signal files, SQL field allowlists, and input validation at system boundaries.
+When working with AI coding agents, you often run 10+ sessions across different projects. Bastion puts them all in one window with a project sidebar, tiled terminal grid, and real-time status detection — so you can see at a glance which sessions need your attention.
 
 ## Features
 
-- **Multi-agent dashboard** — Monitor all sessions from one terminal
-- **Real-time status** — See which agents are running, waiting for input, idle, or errored
-- **Tool support** — Claude Code, OpenCode, Gemini CLI, Codex, custom commands
-- **Git worktrees** — Isolate each agent in its own worktree branch
-- **Session forking** — Fork Claude conversations to explore different approaches
-- **Destructive action safeguards** — Confirmation dialogs for restart and delete operations
-- **Security hardened** — No shell injection, restrictive permissions, input validation
+- **Tiled Terminal Grid** — Up to 6 fully interactive terminals on screen at once (1x1, 2x1, 2x2, 3x2, auto-responsive)
+- **Project Organization** — Group sessions by project. Click a project to see all its terminals.
+- **Real-time Status** — Multi-signal detection shows which sessions are running, waiting for input, idle, or errored
+- **Tool Support** — Claude Code, Codex, Gemini, Shell, Custom commands
+- **Session Resume** — Stop a session and resume it later with full conversation history (Claude Code)
+- **Command Palette** — Cmd+K to fuzzy-search across all sessions
+- **Context Menus** — Right-click sessions to rename, stop, restart, or delete
+- **Window Persistence** — Position, size, and layout saved across restarts
+- **Keyboard-First** — Full keyboard shortcuts for all actions
+- **Security Hardened** — No shell injection, restrictive permissions, parameterized SQL, context isolation
 
 ## Status Indicators
 
-| Icon | Status | Meaning |
-|------|--------|---------|
-| ● | Running | Agent is actively working |
-| ◐ | Waiting | Agent needs your input |
-| ○ | Idle | Session exists, agent is not active |
-| ✕ | Error | Something went wrong |
-| □ | Stopped | Session was explicitly stopped |
+| Color | Status | Meaning |
+|-------|--------|---------|
+| Green | Running | Agent is actively working |
+| Amber | Waiting | Agent needs your input |
+| Gray | Idle | No activity for 60s+ |
+| Red | Error | Something went wrong |
+| Dark | Stopped | Session ended |
 
 ## Installation
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/tomstetson/bastion/main/install.sh | bash
-```
-
-Or install from source:
+### From Source
 
 ```bash
 git clone https://github.com/tomstetson/bastion.git
 cd bastion
-bun install
-bun run build
+npm install
+npm start
+```
+
+### Package as macOS App
+
+```bash
+npm run package    # Creates out/Bastion-darwin-*/Bastion.app
 ```
 
 ## Usage
 
-```bash
-bastion          # Launch the TUI
-bn               # Short alias
-```
+Launch with `npm start`. The app opens with:
+- **Left sidebar** — Projects, sessions, status filters
+- **Main area** — Tiled terminal grid
+- **Toolbar** — Grid layout switcher
+
+### Create a Session
+
+1. Click **"+ New"** or press **Cmd+N**
+2. Choose a project folder (or add to existing project)
+3. Select a tool (Claude Code, Shell, etc.)
+4. Click **Create**
+
+The terminal appears in the grid and is immediately interactive.
 
 ### Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `n` | New session |
-| `Enter` | Attach to session |
-| `d` | Delete session (with confirmation) |
-| `r` | Restart session (with confirmation) |
-| `f` | Fork Claude session |
-| `R` | Rename session |
-| `g` | Create group |
-| `m` | Move session to group |
-| `s` | Shortcuts |
-| `Ctrl+K` | Command palette |
-| `q` | Quit |
+| Shortcut | Action |
+|----------|--------|
+| Cmd+N | New session |
+| Cmd+W | Stop focused session |
+| Cmd+K | Command palette (fuzzy search) |
+| Cmd+Enter | Maximize/restore focused tile |
+| Cmd+1-6 | Focus tile by grid position |
+| Cmd+[ / ] | Navigate between projects |
+| Escape | Close dialog / restore maximized tile |
 
-### CLI Mode
+### Grid Layouts
+
+Click the layout buttons in the toolbar or let "Auto" adapt to your window size:
+- **1x1** — Single terminal, full size
+- **2x1** — Two terminals side by side
+- **2x2** — Four terminals in a grid
+- **3x2** — Six terminals (best on large displays)
+- **Auto** — Adapts based on window width
+
+## Development
 
 ```bash
-bn --new --path /my/project --tool claude
-bn --list
-bn --attach <session-id>
-bn --send <session-id> "Fix the login bug"
-bn --stop <session-id>
-bn --delete <session-id>
+npm install          # Install dependencies
+npm start            # Dev mode (Vite HMR + Electron)
+npm test             # Unit + integration tests
+npm run test:e2e     # Playwright E2E tests
+npm run typecheck    # TypeScript checking
 ```
 
-## Configuration
+### Native Module Note
 
-Create `~/.bastion/config.json` to customize:
+`better-sqlite3` and `node-pty` require compilation matching the runtime ABI:
+- `npm start` handles this automatically (prestart hook)
+- After `npm install`, run `npm run rebuild:electron` before launching
+- For unit tests under system Node: `npm run rebuild:node`
 
-```json
-{
-  "defaultTool": "claude",
-  "theme": "dark",
-  "worktree": {
-    "defaultBaseBranch": "main",
-    "autoCleanup": true
-  },
-  "shortcuts": [
-    {
-      "name": "My Project",
-      "tool": "claude",
-      "projectPath": "/path/to/project",
-      "groupPath": "work",
-      "keybind": "1"
-    }
-  ]
-}
+### Logs
+
+Structured logs at `~/.bastion/bastion.log` (auto-rotated at 5MB):
+```bash
+tail -f ~/.bastion/bastion.log
+```
+
+## Tech Stack
+
+- **Electron** (~35) — Native macOS window with embedded terminals
+- **React 19** + **Zustand** — Renderer UI and state management
+- **xterm.js** — Terminal emulator in the browser
+- **node-pty** — Real PTY processes in the main process
+- **better-sqlite3** — SQLite storage (WAL mode)
+- **Vite** — Build tooling with HMR
+- **Vitest** + **Playwright** — Testing (267 tests)
+
+## Architecture
+
+```
+Electron Main Process          IPC           Renderer (React)
+┌─────────────────────┐                    ┌──────────────────┐
+│ SessionManager      │◄──── invoke ──────►│ Zustand Stores   │
+│ PTYManager (node-pty)│◄── data/resize ──►│ xterm.js Tiles   │
+│ Storage (SQLite)    │                    │ Sidebar + Grid   │
+│ StatusDetector      │── status updates ─►│ Status Indicators│
+│ ResumeManager       │                    │ Dialogs          │
+└─────────────────────┘                    └──────────────────┘
 ```
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+MIT

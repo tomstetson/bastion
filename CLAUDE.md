@@ -9,20 +9,31 @@ Security-hardened terminal agent orchestrator. Electron desktop app with embedde
 - **Terminal:** xterm.js + node-pty (real PTY processes)
 - **Storage:** SQLite (via better-sqlite3, WAL mode)
 - **Build:** Electron Forge + Vite
-- **Testing:** Vitest
+- **Testing:** Vitest (unit/integration) + Playwright (E2E)
+- **Logging:** Structured file logger (~/.bastion/bastion.log)
 
 ## Commands
 
 ```bash
-npm install          # Install dependencies
-npm start            # Launch dev mode (Electron + Vite HMR)
-npm test             # Run all tests (vitest)
-npx vitest run tests/unit/     # Unit tests only
+npm install                        # Install dependencies
+npm start                          # Launch dev mode (Vite + Electron)
+npm run start:forge                # Launch via Forge (for initial .vite/build)
+npm test                           # Unit + integration tests (vitest)
+npm run test:e2e                   # E2E tests (Playwright)
+npx vitest run tests/unit/         # Unit tests only
 npx vitest run tests/integration/  # Integration tests only
-npm run package      # Package app (Electron Forge)
-npm run build        # Make distributable (DMG/ZIP)
-npm run typecheck    # TypeScript type checking
+npm run rebuild:electron           # Rebuild native modules for Electron
+npm run rebuild:node               # Rebuild native modules for system Node (for tests)
+npm run package                    # Package app (Electron Forge)
+npm run build                      # Make distributable (DMG/ZIP)
+npm run typecheck                  # TypeScript type checking
 ```
+
+### Native Module Workflow
+Native modules (better-sqlite3, node-pty) must match the runtime ABI:
+- **For app development:** `npm run rebuild:electron` (or `npm start` does this automatically via prestart hook)
+- **For unit tests:** `npm run rebuild:node` (vitest runs under system Node)
+- **For E2E tests:** tests handle ABI switching automatically
 
 ## Project Structure
 
@@ -58,9 +69,14 @@ src/                   # Renderer process (React)
 ├── styles/            # CSS (theme.css)
 └── types/             # TypeScript declarations
 
+scripts/
+├── dev-start.js       # Dev launcher (Vite + Electron, bypasses Forge)
+└── ensure-electron-modules.js  # Ensures native modules match Electron ABI
+
 tests/
-├── unit/              # Unit tests (storage, types, status-detector, etc.)
-└── integration/       # Integration tests (session lifecycle)
+├── unit/              # Unit tests (storage, types, ring-buffer, etc.)
+├── integration/       # Integration tests (session lifecycle)
+└── e2e/               # Playwright E2E tests (38 tests)
 ```
 
 ## Key Features
@@ -87,6 +103,24 @@ tests/
 - `src/components/Grid/` — Terminal grid with xterm.js tiles
 - `src/components/Dialogs/` — New session and command palette dialogs
 - `forge.config.ts` — Electron Forge build configuration
+- `electron/core/logger.ts` — Structured logging system
+- `scripts/ensure-electron-modules.js` — Native module ABI management
+- `scripts/dev-start.js` — Dev launcher (bypasses Forge process management)
+
+## Logging
+
+Structured logs write to `~/.bastion/bastion.log` (5MB rotation). To view:
+```bash
+tail -f ~/.bastion/bastion.log       # Follow live
+cat ~/.bastion/bastion.log | grep ERROR  # Find errors
+BASTION_LOG_LEVEL=debug npm start    # Enable debug logging
+```
+
+## Gotchas
+
+- **Forge kills Electron on macOS:** `npm run start:forge` doesn't work reliably — Forge's process management terminates Electron immediately. Use `npm start` (dev-start.js) instead.
+- **Native module ABI mismatch:** `better-sqlite3` and `node-pty` ship prebuilds for system Node that don't work in Electron. The `prestart` hook handles this, but after `npm install` you may need `npm run rebuild:electron`.
+- **Port 5173 conflicts:** The Vite dev server URL is hardcoded in the built main.js. If port 5173 is occupied, the app shows a blank screen. `npm start` kills stale processes automatically.
 
 ## Security Notes
 
