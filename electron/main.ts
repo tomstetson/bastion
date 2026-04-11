@@ -7,6 +7,10 @@ import { StatusDetector } from "./core/status-detector";
 import { ResumeManager } from "./core/resume-manager";
 import { SessionManager } from "./core/session-manager";
 import { registerIpcHandlers } from "./ipc-handlers";
+import { createLogger, logStartupDiagnostics, closeLogger } from "./core/logger";
+
+const log = createLogger("main");
+const appStartTime = Date.now();
 
 let mainWindow: BrowserWindow | null = null;
 let sessionManager: SessionManager | null = null;
@@ -17,6 +21,7 @@ let sessionManager: SessionManager | null = null;
  * status refresh and registers all IPC handlers.
  */
 function initCore(): void {
+  log.info("Initializing core services");
   const bastionDir = path.join(os.homedir(), ".bastion");
   const storage = new Storage();
   const ptyManager = new PTYManager({
@@ -34,9 +39,11 @@ function initCore(): void {
 
   sessionManager.startStatusRefresh();
   registerIpcHandlers(sessionManager);
+  log.info("Core services initialized");
 }
 
 function createWindow(): void {
+  log.info("Creating main window");
   // Read saved window bounds so the app reopens where the user left it
   const tempStorage = new Storage();
   const savedState = tempStorage.getWindowState();
@@ -80,11 +87,18 @@ function createWindow(): void {
   mainWindow.on("resize", debouncedSave);
   mainWindow.on("move", debouncedSave);
 
+  // Log when renderer finishes first paint (startup timing)
+  mainWindow.webContents.on("did-finish-load", () => {
+    log.info("Renderer finished loading", { msFromStart: Date.now() - appStartTime });
+  });
+
   // Log renderer errors
   mainWindow.webContents.on("did-fail-load", (_e, code, desc) => {
+    log.error("Renderer failed to load", { code, description: desc });
     console.error(`[RENDERER] Failed to load: ${code} ${desc}`);
   });
   mainWindow.webContents.on("render-process-gone", (_e, details) => {
+    log.error("Renderer process gone", { reason: details.reason });
     console.error(`[RENDERER] Process gone:`, details);
   });
   mainWindow.webContents.on("console-message", (e) => {
@@ -104,16 +118,23 @@ function createWindow(): void {
 
 // Log uncaught errors to help diagnose startup failures
 process.on("uncaughtException", (err) => {
+  log.error("Uncaught exception", { message: String(err), stack: (err as Error).stack });
   console.error("[MAIN] Uncaught exception:", err);
 });
 process.on("unhandledRejection", (err) => {
+  log.error("Unhandled rejection", { message: String(err) });
   console.error("[MAIN] Unhandled rejection:", err);
 });
 
 app.whenReady().then(() => {
+  logStartupDiagnostics();
+  const readyTime = Date.now();
+  log.info("App ready", { msFromStart: readyTime - appStartTime });
+
   try {
     initCore();
   } catch (err) {
+    log.error("initCore failed", { message: String(err) });
     console.error("[MAIN] initCore failed:", err);
   }
   createWindow();
@@ -121,18 +142,22 @@ app.whenReady().then(() => {
   app.on("activate", () => {
     // macOS: re-create window when dock icon clicked and no windows open
     if (BrowserWindow.getAllWindows().length === 0) {
+      log.info("Reactivating — creating window");
       createWindow();
     }
   });
 });
 
 app.on("window-all-closed", () => {
+  log.info("All windows closed — quitting");
   app.quit();
 });
 
 // Capture resume data for running sessions before the app exits
 app.on("before-quit", () => {
+  log.info("Before quit — flushing sessions");
   sessionManager?.flushAndClose();
+  closeLogger();
 });
 
 // Vite injects these constants at build time

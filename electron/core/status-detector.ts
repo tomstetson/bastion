@@ -9,6 +9,7 @@
  *   exited → error → waiting (low activity) → running (high activity or patterns) → idle (60s+ no activity) → default running
  */
 
+import { createLogger } from "./logger";
 import type { Tool, SessionStatus } from "./types";
 import {
   CLAUDE_WAITING_PATTERNS,
@@ -55,6 +56,8 @@ function matchesAny(patterns: RegExp[], lines: string[]): boolean {
   return lines.some((line) => patterns.some((pattern) => pattern.test(line)));
 }
 
+const log = createLogger("status-detector");
+
 export class StatusDetector {
   /**
    * Detect the current status of a session based on multiple signals.
@@ -75,6 +78,7 @@ export class StatusDetector {
 
     // Priority 1: Error patterns — problems need attention regardless of activity
     if (matchesAny(patterns.error, lastLines)) {
+      log.debug("Status detected: error", { tool, bytesPerSecond });
       return "error";
     }
 
@@ -84,6 +88,7 @@ export class StatusDetector {
       matchesAny(patterns.waiting, lastLines) &&
       bytesPerSecond <= ACTIVITY_THRESHOLD
     ) {
+      log.debug("Status detected: waiting", { tool, bytesPerSecond });
       return "waiting";
     }
 

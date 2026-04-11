@@ -9,8 +9,11 @@
  */
 
 import { ipcMain, dialog } from "electron";
+import { createLogger } from "./core/logger";
 import type { SessionManager } from "./core/session-manager";
 import type { SessionCreateOptions, GridLayout } from "./core/types";
+
+const log = createLogger("ipc");
 
 export function registerIpcHandlers(sessionManager: SessionManager): void {
   // ---------------------------------------------------------------------------
@@ -94,8 +97,8 @@ export function registerIpcHandlers(sessionManager: SessionManager): void {
   ipcMain.on("pty:input", (_, sessionId: string, data: string) => {
     try {
       sessionManager["ptyManager"].write(sessionId, data);
-    } catch {
-      // Session may have been disposed — safe to ignore
+    } catch (err) {
+      log.error("pty:input failed", { sessionId, message: String(err) });
     }
   });
 
@@ -104,8 +107,8 @@ export function registerIpcHandlers(sessionManager: SessionManager): void {
     (_, sessionId: string, cols: number, rows: number) => {
       try {
         sessionManager["ptyManager"].resize(sessionId, cols, rows);
-      } catch {
-        // Session may have been disposed — safe to ignore
+      } catch (err) {
+        log.error("pty:resize failed", { sessionId, message: String(err) });
       }
     },
   );

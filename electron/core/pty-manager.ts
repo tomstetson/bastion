@@ -10,6 +10,9 @@
 import * as pty from "node-pty";
 import path from "node:path";
 import { RingBuffer } from "./ring-buffer";
+import { createLogger } from "./logger";
+
+const log = createLogger("pty-manager");
 
 // ---------------------------------------------------------------------------
 // Types
@@ -102,6 +105,7 @@ export class PTYManager {
     // Wire PTY exit → mark dead + notify listeners
     ptyProcess.onExit(({ exitCode, signal }) => {
       instance.alive = false;
+      log.info("PTY exited", { sessionId, pid: ptyProcess.pid, exitCode, signal });
       const info = { exitCode, signal };
       for (const listener of instance.exitListeners) {
         listener(info);
@@ -109,6 +113,7 @@ export class PTYManager {
     });
 
     this.sessions.set(sessionId, instance);
+    log.info("PTY spawned", { sessionId, pid: ptyProcess.pid, command: options.command });
 
     return { sessionId, pid: ptyProcess.pid };
   }
@@ -173,6 +178,7 @@ export class PTYManager {
       instance.alive = false;
     }
 
+    log.info("PTY disposed", { sessionId });
     instance.dataListeners.length = 0;
     instance.exitListeners.length = 0;
     this.sessions.delete(sessionId);

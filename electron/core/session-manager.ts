@@ -15,7 +15,10 @@
 
 import { randomUUID } from "node:crypto";
 
+import { createLogger } from "./logger";
 import type { Storage } from "./storage";
+
+const log = createLogger("session-manager");
 import type { PTYManager } from "./pty-manager";
 import type { StatusDetector } from "./status-detector";
 import type { ResumeManager } from "./resume-manager";
@@ -203,6 +206,8 @@ export class SessionManager {
     this.storage.updateSessionPid(session.id, spawnResult.pid);
     session.pid = spawnResult.pid;
 
+    log.info("Session created", { id: session.id, name, tool, pid: spawnResult.pid });
+
     // Wire activity tracking
     this.lastActivityMap.set(session.id, Date.now());
     this.ptyManager.onData(session.id, () => {
@@ -248,6 +253,7 @@ export class SessionManager {
     // Already stopped — nothing to do
     if (session.status === "stopped") return;
 
+    log.info("Stopping session", { id, name: session.name });
     this.captureResumeDataForSession(session);
     this.disposePTYSafe(id);
     this.storage.updateSessionStatus(id, "stopped");
@@ -263,6 +269,7 @@ export class SessionManager {
       throw new Error(`Session "${id}" not found`);
     }
 
+    log.info("Restarting session", { id, name: session.name });
     // Kill existing PTY if any
     this.disposePTYSafe(id);
 
@@ -305,6 +312,8 @@ export class SessionManager {
     if (!session) return null;
     if (!session.resumeData) return null;
 
+    log.info("Resuming session", { id, name: session.name });
+
     // Validate resume data
     if (!this.resumeManager.isResumeValid(session.resumeData)) {
       return null;
@@ -345,6 +354,7 @@ export class SessionManager {
    * Delete a session: dispose PTY, remove from storage entirely.
    */
   deleteSession(id: string): void {
+    log.info("Deleting session", { id });
     this.disposePTYSafe(id);
     this.lastActivityMap.delete(id);
     this.bytesAtLastRefresh.delete(id);
