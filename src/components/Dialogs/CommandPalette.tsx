@@ -130,6 +130,7 @@ export default function CommandPalette({ onClose }: CommandPaletteProps) {
       onClick={onClose}
     >
       <div
+        data-testid="command-palette"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#161b22",
@@ -156,6 +157,7 @@ export default function CommandPalette({ onClose }: CommandPaletteProps) {
           <span style={{ color: "#484f58", fontSize: 14 }}>&#128269;</span>
           <input
             ref={inputRef}
+            data-testid="palette-search"
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

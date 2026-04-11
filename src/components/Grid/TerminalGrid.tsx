@@ -69,6 +69,7 @@ export default function TerminalGrid({
   return (
     <div
       ref={containerRef}
+      data-testid="terminal-grid"
       style={{
         flex: 1,
         display: "grid",

@@ -103,6 +103,7 @@ export default function TerminalTile({ session }: TerminalTileProps) {
 
   return (
     <div
+      data-testid="terminal-tile"
       style={{
         display: "flex",
         flexDirection: "column",

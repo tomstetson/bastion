@@ -90,6 +90,7 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
 
   return (
     <aside
+      data-testid="sidebar"
       style={{
         width: sidebarWidth,
         minWidth: sidebarWidth,
@@ -121,6 +122,7 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
         }}
       >
         <h1
+          data-testid="sidebar-header"
           style={{
             fontSize: 14,
             fontWeight: 800,
@@ -134,6 +136,7 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
           BASTION
         </h1>
         <button
+          data-testid="new-button"
           onClick={onNewSession}
           style={{
             fontSize: 11,
@@ -302,6 +305,7 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
 
       {/* Footer */}
       <div
+        data-testid="session-count"
         style={{
           padding: "8px 12px",
           borderTop: "1px solid #21262d",

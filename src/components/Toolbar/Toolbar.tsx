@@ -31,6 +31,7 @@ export default function Toolbar({
 }: ToolbarProps) {
   return (
     <div
+      data-testid="toolbar"
       style={{
         background: "#161b22",
         borderBottom: "1px solid #21262d",
@@ -97,6 +98,7 @@ export default function Toolbar({
             return (
               <button
                 key={value}
+                data-testid={`layout-btn-${value}`}
                 onClick={() => onLayoutChange(value)}
                 style={{
                   fontSize: 11,

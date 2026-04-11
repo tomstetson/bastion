@@ -34,6 +34,7 @@ export default function StatusFilters({
 
   return (
     <div
+      data-testid="status-filters"
       style={{
         display: "flex",
         flexWrap: "wrap",

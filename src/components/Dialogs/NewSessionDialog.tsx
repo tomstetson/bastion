@@ -142,6 +142,7 @@ export default function NewSessionDialog({ onClose }: NewSessionDialogProps) {
       onClick={onClose}
     >
       <div
+        data-testid="new-session-dialog"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#161b22",
@@ -301,6 +302,7 @@ export default function NewSessionDialog({ onClose }: NewSessionDialogProps) {
               {TOOLS.map((t) => (
                 <button
                   key={t.value}
+                  data-testid={`tool-${t.value}`}
                   onClick={() => setTool(t.value)}
                   style={{
                     padding: "6px 14px",
@@ -387,6 +389,7 @@ export default function NewSessionDialog({ onClose }: NewSessionDialogProps) {
           }}
         >
           <button
+            data-testid="cancel-btn"
             onClick={onClose}
             style={{
               padding: "6px 16px",
@@ -401,6 +404,7 @@ export default function NewSessionDialog({ onClose }: NewSessionDialogProps) {
             Cancel
           </button>
           <button
+            data-testid="create-btn"
             onClick={handleCreate}
             disabled={!canCreate}
             style={{

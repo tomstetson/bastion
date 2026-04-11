@@ -14,6 +14,7 @@ export default function GhostTile({ onCreateSession }: GhostTileProps) {
 
   return (
     <div
+      data-testid="ghost-tile"
       onClick={onCreateSession}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
