@@ -3,7 +3,7 @@
  *
  * - Sorts sessions by gridSlot, caps at maxSlots (cols * rows)
  * - Fills empty slots with GhostTiles
- * - When a session is maximized, renders only that session fullscreen
+ * - When a session is zoomed, renders only that session fullscreen
  */
 
 import React, { useMemo } from "react";
@@ -25,7 +25,7 @@ export default function TerminalGrid({
   onCreateSession,
 }: TerminalGridProps) {
   const { cols, rows, containerRef } = useGrid(layout);
-  const maximizedSessionId = useUIStore((s) => s.maximizedSessionId);
+  const zoomedSessionId = useUIStore((s) => s.zoomedSessionId);
 
   const maxSlots = cols * rows;
 
@@ -40,12 +40,12 @@ export default function TerminalGrid({
     return sorted.slice(0, maxSlots);
   }, [sessions, maxSlots]);
 
-  // If a session is maximized, show only that one
-  const maximizedSession = maximizedSessionId
-    ? sessions.find((s) => s.id === maximizedSessionId)
+  // If a session is zoomed, show only that one
+  const zoomedSession = zoomedSessionId
+    ? sessions.find((s) => s.id === zoomedSessionId)
     : null;
 
-  if (maximizedSession) {
+  if (zoomedSession) {
     return (
       <div
         ref={containerRef}
@@ -57,7 +57,7 @@ export default function TerminalGrid({
         }}
       >
         <div style={{ flex: 1, minHeight: 0 }}>
-          <TerminalTile session={maximizedSession} />
+          <TerminalTile session={zoomedSession} />
         </div>
       </div>
     );

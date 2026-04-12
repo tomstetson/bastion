@@ -4,12 +4,12 @@
  * Listens for Cmd+key combinations and dispatches actions:
  * - Cmd+N → open new session dialog
  * - Cmd+W → stop focused session (with confirmation)
- * - Cmd+Enter → maximize/restore focused tile
+ * - Cmd+Enter → zoom/restore focused tile
  * - Cmd+1-6 → focus tile by grid slot position
  * - Cmd+K → toggle command palette
  * - Cmd+[ → previous project in sidebar
  * - Cmd+] → next project in sidebar
- * - Escape → restore maximized / close dialog
+ * - Escape → restore zoomed / close dialog
  */
 
 import { useEffect } from "react";
@@ -35,10 +35,10 @@ export function useKeyboard({
 
       // --- Escape (no modifier required) ---
       if (e.key === "Escape") {
-        const maximizedId = useUIStore.getState().maximizedSessionId;
-        if (maximizedId) {
+        const zoomedId = useUIStore.getState().zoomedSessionId;
+        if (zoomedId) {
           e.preventDefault();
-          useUIStore.getState().toggleMaximized(null);
+          useUIStore.getState().toggleZoom(null);
           return;
         }
         onEscape?.();
@@ -69,12 +69,12 @@ export function useKeyboard({
         return;
       }
 
-      // --- Cmd+Enter: maximize/restore ---
+      // --- Cmd+Enter: zoom/restore ---
       if (e.key === "Enter") {
         e.preventDefault();
         const focusedId = useUIStore.getState().focusedTileSessionId;
         if (focusedId) {
-          useUIStore.getState().toggleMaximized(focusedId);
+          useUIStore.getState().toggleZoom(focusedId);
         }
         return;
       }

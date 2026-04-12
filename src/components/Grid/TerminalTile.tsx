@@ -96,7 +96,7 @@ function TerminalBody({ sessionId, onFocus }: { sessionId: string; onFocus: () =
 export default function TerminalTile({ session }: TerminalTileProps) {
   const focusedTileSessionId = useUIStore((s) => s.focusedTileSessionId);
   const setFocusedTile = useUIStore((s) => s.setFocusedTile);
-  const toggleMaximized = useUIStore((s) => s.toggleMaximized);
+  const toggleZoom = useUIStore((s) => s.toggleZoom);
   const stopSession = useSessionsStore((s) => s.stopSession);
   const restartSession = useSessionsStore((s) => s.restartSession);
   const resumeSession = useSessionsStore((s) => s.resumeSession);
@@ -155,7 +155,7 @@ export default function TerminalTile({ session }: TerminalTileProps) {
   /** Context menu items */
   const menuItems = useMemo(
     () => [
-      { label: "Expand", action: () => toggleMaximized(session.id) },
+      { label: "Expand", action: () => toggleZoom(session.id) },
       { label: "Pop Out to Window", action: handlePopOut },
       {
         label: "Rename",
@@ -185,7 +185,7 @@ export default function TerminalTile({ session }: TerminalTileProps) {
       session.id,
       session.name,
       session.status,
-      toggleMaximized,
+      toggleZoom,
       stopSession,
       restartSession,
       deleteSession,
@@ -329,7 +329,7 @@ export default function TerminalTile({ session }: TerminalTileProps) {
           data-testid="expand-btn"
           onClick={(e) => {
             e.stopPropagation();
-            toggleMaximized(session.id);
+            toggleZoom(session.id);
           }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.color = "#c9d1d9";

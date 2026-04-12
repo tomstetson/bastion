@@ -74,7 +74,7 @@ The terminal appears in the grid and is immediately interactive.
 | Cmd+Enter | Maximize/restore focused tile |
 | Cmd+1-6 | Focus tile by grid position |
 | Cmd+[ / ] | Navigate between projects |
-| Escape | Close dialog / restore maximized tile |
+| Escape | Close dialog / restore zoomed tile |
 
 ### Grid Layouts
 
