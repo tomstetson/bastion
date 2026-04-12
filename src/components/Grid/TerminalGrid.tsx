@@ -3,7 +3,8 @@
  *
  * - Sorts sessions by gridSlot, caps at maxSlots (cols * rows)
  * - Fills empty slots with GhostTiles
- * - When a session is zoomed, renders only that session fullscreen
+ * - When a session is zoomed, fades background tiles and renders a
+ *   ZoomOverlay on top with the zoomed session at full grid size
  */
 
 import React, { useMemo } from "react";
@@ -12,6 +13,7 @@ import { useGrid } from "../../hooks/useGrid";
 import { useUIStore } from "../../store/ui";
 import TerminalTile from "./TerminalTile";
 import GhostTile from "./GhostTile";
+import ZoomOverlay from "./ZoomOverlay";
 
 interface TerminalGridProps {
   sessions: Session[];
@@ -40,28 +42,10 @@ export default function TerminalGrid({
     return sorted.slice(0, maxSlots);
   }, [sessions, maxSlots]);
 
-  // If a session is zoomed, show only that one
+  // Resolve zoomed session (if any)
   const zoomedSession = zoomedSessionId
     ? sessions.find((s) => s.id === zoomedSessionId)
     : null;
-
-  if (zoomedSession) {
-    return (
-      <div
-        ref={containerRef}
-        style={{
-          flex: 1,
-          display: "flex",
-          minHeight: 0,
-          padding: 4,
-        }}
-      >
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <TerminalTile session={zoomedSession} />
-        </div>
-      </div>
-    );
-  }
 
   // Build grid slots: session tiles + ghost tiles for empties
   const ghostCount = Math.max(0, maxSlots - gridSessions.length);
@@ -78,14 +62,28 @@ export default function TerminalGrid({
         gap: 4,
         padding: 4,
         minHeight: 0,
+        position: "relative",
       }}
     >
       {gridSessions.map((session) => (
-        <TerminalTile key={session.id} session={session} />
+        <div key={session.id} className={zoomedSessionId ? "tile-fade-out" : ""}>
+          <TerminalTile session={session} />
+        </div>
       ))}
-      {Array.from({ length: ghostCount }, (_, i) => (
-        <GhostTile key={`ghost-${i}`} onCreateSession={onCreateSession} />
-      ))}
+      {ghostCount > 0 &&
+        Array.from({ length: ghostCount }, (_, i) => (
+          <div key={`ghost-${i}`} className={zoomedSessionId ? "tile-fade-out" : ""}>
+            <GhostTile onCreateSession={onCreateSession} />
+          </div>
+        ))}
+
+      {/* Zoom overlay on top of the grid */}
+      {zoomedSession && (
+        <ZoomOverlay
+          session={zoomedSession}
+          onClose={() => useUIStore.getState().toggleZoom(null)}
+        />
+      )}
     </div>
   );
 }

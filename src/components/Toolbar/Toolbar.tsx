@@ -1,12 +1,13 @@
 /**
  * Top toolbar with project breadcrumb and grid layout switcher.
  *
- * Left side: active project name + session count (or placeholder text)
+ * Left side: active project name + session count (or placeholder text),
+ *            plus zoomed session breadcrumb with close button when zoomed
  * Right side: layout buttons (1x1, 2x1, 2x2, 3x2, auto)
  */
 
 import React from "react";
-import type { Project, GridLayout } from "../../../electron/core/types";
+import type { Project, Session, GridLayout } from "../../../electron/core/types";
 
 const LAYOUTS: Array<{ value: GridLayout; label: string }> = [
   { value: "1x1", label: "1x1" },
@@ -21,6 +22,8 @@ interface ToolbarProps {
   sessionCount: number;
   activeLayout: GridLayout;
   onLayoutChange: (layout: GridLayout) => void;
+  zoomedSession?: Session | null;
+  onZoomClose?: () => void;
 }
 
 export default function Toolbar({
@@ -28,6 +31,8 @@ export default function Toolbar({
   sessionCount,
   activeLayout,
   onLayoutChange,
+  zoomedSession,
+  onZoomClose,
 }: ToolbarProps) {
   return (
     <div
@@ -88,6 +93,35 @@ export default function Toolbar({
             >
               Standalone sessions
             </span>
+          )}
+
+          {/* Zoomed session breadcrumb */}
+          {zoomedSession && (
+            <>
+              <span style={{ color: "#484f58", margin: "0 6px" }}>&rsaquo;</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#58a6ff" }}>
+                {zoomedSession.name}
+              </span>
+              <button
+                data-testid="zoom-close-btn"
+                onClick={onZoomClose}
+                title="Back to grid (Esc)"
+                style={{
+                  marginLeft: 8,
+                  fontSize: 11,
+                  padding: "1px 6px",
+                  borderRadius: 3,
+                  border: "1px solid #30363d",
+                  background: "transparent",
+                  color: "#8b949e",
+                  cursor: "pointer",
+                  // @ts-expect-error -- Electron-specific CSS property to allow button clicks in drag region
+                  WebkitAppRegion: "no-drag",
+                }}
+              >
+                &#x2715;
+              </button>
+            </>
           )}
         </div>
 

@@ -23,6 +23,7 @@ export default function App() {
   const sessions = useSessionsStore((s) => s.sessions);
 
   const activeProjectId = useUIStore((s) => s.activeProjectId);
+  const zoomedSessionId = useUIStore((s) => s.zoomedSessionId);
   const statusFilter = useUIStore((s) => s.statusFilter);
   const standaloneGridLayout = useUIStore((s) => s.standaloneGridLayout);
   const setStandaloneGridLayout = useUIStore((s) => s.setStandaloneGridLayout);
@@ -49,6 +50,12 @@ export default function App() {
   const activeProject = useMemo(
     () => projects.find((p) => p.id === activeProjectId) ?? null,
     [projects, activeProjectId]
+  );
+
+  // Resolve zoomed session for toolbar breadcrumb
+  const zoomedSession = useMemo(
+    () => sessions.find((s) => s.id === zoomedSessionId) ?? null,
+    [sessions, zoomedSessionId]
   );
 
   // Current grid layout — from active project, or standalone preference
@@ -110,6 +117,8 @@ export default function App() {
           sessionCount={gridSessions.length}
           activeLayout={currentLayout}
           onLayoutChange={handleLayoutChange}
+          zoomedSession={zoomedSession}
+          onZoomClose={() => useUIStore.getState().toggleZoom(null)}
         />
 
         {/* Terminal Grid */}

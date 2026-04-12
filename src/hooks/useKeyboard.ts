@@ -98,9 +98,25 @@ export function useKeyboard({
         return;
       }
 
-      // --- Cmd+[ / Cmd+]: navigate projects ---
+      // --- Cmd+[ / Cmd+]: cycle sessions (when zoomed) or navigate projects ---
       if (e.key === "[" || e.key === "]") {
         e.preventDefault();
+
+        // If zoomed, cycle through sessions instead of projects
+        const zoomedId = useUIStore.getState().zoomedSessionId;
+        if (zoomedId) {
+          const allSessions = useSessionsStore.getState().sessions;
+          if (allSessions.length <= 1) return;
+          const currentIdx = allSessions.findIndex((s) => s.id === zoomedId);
+          if (currentIdx === -1) return;
+          const nextIdx =
+            e.key === "]"
+              ? (currentIdx + 1) % allSessions.length
+              : (currentIdx - 1 + allSessions.length) % allSessions.length;
+          useUIStore.getState().toggleZoom(allSessions[nextIdx].id);
+          return;
+        }
+
         const projects = useProjectsStore.getState().projects;
         if (projects.length === 0) return;
 
