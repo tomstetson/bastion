@@ -3,7 +3,7 @@
  * Composes Sidebar, Toolbar, and TerminalGrid into the main layout.
  */
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import "./styles/theme.css";
 import Sidebar from "./components/Sidebar/Sidebar";
 import Toolbar from "./components/Toolbar/Toolbar";
@@ -31,6 +31,14 @@ export default function App() {
   // Dialog visibility state
   const [showNewSession, setShowNewSession] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+
+  // Listen for pop-out window close events to remove placeholder tiles
+  useEffect(() => {
+    const unsubscribe = window.bastion.popout.onClosed((sessionId: string) => {
+      useUIStore.getState().removePopOut(sessionId);
+    });
+    return unsubscribe;
+  }, []);
 
   // Global keyboard shortcuts
   useKeyboard({

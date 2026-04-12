@@ -133,9 +133,9 @@ export default function TerminalTile({ session }: TerminalTileProps) {
     }
   }, [deleteSession, session.id, session.name]);
 
-  /** Stub for pop-out — implemented in Task 6 */
-  const handlePopOut = () => {
-    /* implemented in Task 6 */
+  const handlePopOut = async () => {
+    useUIStore.getState().addPopOut(session.id);
+    await window.bastion.popout.create(session.id, session.name);
   };
 
   /** Save the rename and exit rename mode */

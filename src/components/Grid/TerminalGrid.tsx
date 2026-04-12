@@ -12,6 +12,7 @@ import type { Session, GridLayout } from "../../../electron/core/types";
 import { useGrid } from "../../hooks/useGrid";
 import { useUIStore } from "../../store/ui";
 import TerminalTile from "./TerminalTile";
+import PlaceholderTile from "./PlaceholderTile";
 import GhostTile from "./GhostTile";
 import ZoomOverlay from "./ZoomOverlay";
 
@@ -28,6 +29,7 @@ export default function TerminalGrid({
 }: TerminalGridProps) {
   const { cols, rows, containerRef } = useGrid(layout);
   const zoomedSessionId = useUIStore((s) => s.zoomedSessionId);
+  const poppedOutSessionIds = useUIStore((s) => s.poppedOutSessionIds);
 
   const maxSlots = cols * rows;
 
@@ -67,7 +69,14 @@ export default function TerminalGrid({
     >
       {gridSessions.map((session) => (
         <div key={session.id} className={zoomedSessionId ? "tile-fade-out" : ""}>
-          <TerminalTile session={session} />
+          {poppedOutSessionIds.has(session.id) ? (
+            <PlaceholderTile
+              session={session}
+              onSnapBack={() => window.bastion.popout.close(session.id)}
+            />
+          ) : (
+            <TerminalTile session={session} />
+          )}
         </div>
       ))}
       {ghostCount > 0 &&
