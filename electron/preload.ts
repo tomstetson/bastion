@@ -82,6 +82,23 @@ contextBridge.exposeInMainWorld("bastion", {
   },
 
   // ---------------------------------------------------------------------------
+  // Pop-out windows — detached single-session windows
+  // ---------------------------------------------------------------------------
+  popout: {
+    create: (sessionId: string, sessionName: string) =>
+      ipcRenderer.invoke("popout:create", sessionId, sessionName),
+    close: (sessionId: string) =>
+      ipcRenderer.invoke("popout:close", sessionId),
+    exists: (sessionId: string) =>
+      ipcRenderer.invoke("popout:exists", sessionId),
+    onClosed: (callback: (sessionId: string) => void) => {
+      const handler = (_: any, sessionId: string) => callback(sessionId);
+      ipcRenderer.on("popout:closed", handler);
+      return () => ipcRenderer.removeListener("popout:closed", handler);
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // Native dialogs
   // ---------------------------------------------------------------------------
   dialog: {

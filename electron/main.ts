@@ -7,6 +7,7 @@ import { StatusDetector } from "./core/status-detector";
 import { ResumeManager } from "./core/resume-manager";
 import { SessionManager } from "./core/session-manager";
 import { registerIpcHandlers } from "./ipc-handlers";
+import { closeAllPopOutWindows } from "./popout-manager";
 import { createLogger, logStartupDiagnostics, closeLogger } from "./core/logger";
 
 const log = createLogger("main");
@@ -156,6 +157,7 @@ app.on("window-all-closed", () => {
 // Capture resume data for running sessions before the app exits
 app.on("before-quit", () => {
   log.info("Before quit — flushing sessions");
+  closeAllPopOutWindows();
   sessionManager?.flushAndClose();
   closeLogger();
 });

@@ -8,10 +8,19 @@
  * session-scoped channels (pty:data:<sessionId>, pty:exit:<sessionId>).
  */
 
-import { ipcMain, dialog } from "electron";
+import { ipcMain, dialog, BrowserWindow } from "electron";
+import path from "node:path";
 import { createLogger } from "./core/logger";
+import {
+  createPopOutWindow,
+  closePopOutWindow,
+  hasPopOutWindow,
+} from "./popout-manager";
 import type { SessionManager } from "./core/session-manager";
 import type { SessionCreateOptions, GridLayout } from "./core/types";
+
+// Vite injects this constant at build time into all main process files
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 
 const log = createLogger("ipc");
 
@@ -153,5 +162,44 @@ export function registerIpcHandlers(sessionManager: SessionManager): void {
       properties: ["openDirectory", "createDirectory"],
     });
     return result.canceled ? null : result.filePaths[0];
+  });
+
+  // ---------------------------------------------------------------------------
+  // Pop-out windows — detached single-session windows
+  // ---------------------------------------------------------------------------
+
+  ipcMain.handle(
+    "popout:create",
+    (event, sessionId: string, sessionName: string) => {
+      const preloadPath = path.join(__dirname, "preload.js");
+      const devUrl =
+        typeof MAIN_WINDOW_VITE_DEV_SERVER_URL !== "undefined"
+          ? MAIN_WINDOW_VITE_DEV_SERVER_URL
+          : undefined;
+      const win = createPopOutWindow(
+        sessionId,
+        sessionName,
+        preloadPath,
+        devUrl,
+      );
+
+      // Notify all windows when a pop-out closes (so UI can update state)
+      win.on("closed", () => {
+        for (const w of BrowserWindow.getAllWindows()) {
+          if (!w.isDestroyed()) {
+            w.webContents.send("popout:closed", sessionId);
+          }
+        }
+      });
+      return true;
+    },
+  );
+
+  ipcMain.handle("popout:close", (_, sessionId: string) => {
+    closePopOutWindow(sessionId);
+  });
+
+  ipcMain.handle("popout:exists", (_, sessionId: string) => {
+    return hasPopOutWindow(sessionId);
   });
 }

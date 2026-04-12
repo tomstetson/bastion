@@ -43,6 +43,12 @@ interface BastionAPI {
     onData(sessionId: string, callback: (data: string) => void): () => void;
     onExit(sessionId: string, callback: (code: number) => void): () => void;
   };
+  popout: {
+    create(sessionId: string, sessionName: string): Promise<boolean>;
+    close(sessionId: string): Promise<void>;
+    exists(sessionId: string): Promise<boolean>;
+    onClosed(callback: (sessionId: string) => void): () => void;
+  };
   dialog: {
     openFolder(): Promise<string | null>;
   };
