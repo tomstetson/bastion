@@ -17,6 +17,7 @@ const STATUS_COLORS: Record<SessionStatus, string> = {
 interface SessionItemProps {
   session: Session;
   isActive: boolean;
+  isPoppedOut?: boolean;
   onClick: () => void;
   onContextMenu?: (e: React.MouseEvent) => void;
 }
@@ -24,6 +25,7 @@ interface SessionItemProps {
 export default function SessionItem({
   session,
   isActive,
+  isPoppedOut,
   onClick,
   onContextMenu,
 }: SessionItemProps) {
@@ -75,6 +77,13 @@ export default function SessionItem({
       >
         {session.name}
       </span>
+
+      {/* Pop-out indicator */}
+      {isPoppedOut && (
+        <span style={{ color: "#484f58", fontSize: 10, marginLeft: 2, flexShrink: 0 }}>
+          ↗
+        </span>
+      )}
     </div>
   );
 }

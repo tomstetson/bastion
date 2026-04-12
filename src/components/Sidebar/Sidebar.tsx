@@ -38,6 +38,7 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
 
   const activeProjectId = useUIStore((s) => s.activeProjectId);
   const focusedTileSessionId = useUIStore((s) => s.focusedTileSessionId);
+  const poppedOutSessionIds = useUIStore((s) => s.poppedOutSessionIds);
   const statusFilter = useUIStore((s) => s.statusFilter);
   const sidebarWidth = useUIStore((s) => s.sidebarWidth);
   const setActiveProject = useUIStore((s) => s.setActiveProject);
@@ -255,6 +256,7 @@ export default function Sidebar({ onNewSession }: SidebarProps) {
                   key={session.id}
                   session={session}
                   isActive={focusedTileSessionId === session.id}
+                  isPoppedOut={poppedOutSessionIds.has(session.id)}
                   onClick={() => {
                     setFocusedTile(session.id);
                     setActiveProject(null);
