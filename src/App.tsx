@@ -40,6 +40,17 @@ export default function App() {
     return unsubscribe;
   }, []);
 
+  // Close pop-out windows for sessions that no longer exist
+  useEffect(() => {
+    const poppedOut = useUIStore.getState().poppedOutSessionIds;
+    for (const sessionId of poppedOut) {
+      if (!sessions.find((s) => s.id === sessionId)) {
+        window.bastion.popout.close(sessionId);
+        useUIStore.getState().removePopOut(sessionId);
+      }
+    }
+  }, [sessions]);
+
   // Global keyboard shortcuts
   useKeyboard({
     onNewSession: () => setShowNewSession(true),

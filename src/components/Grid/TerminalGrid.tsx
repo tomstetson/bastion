@@ -7,7 +7,7 @@
  *   ZoomOverlay on top with the zoomed session at full grid size
  */
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import type { Session, GridLayout } from "../../../electron/core/types";
 import { useGrid } from "../../hooks/useGrid";
 import { useUIStore } from "../../store/ui";
@@ -30,6 +30,13 @@ export default function TerminalGrid({
   const { cols, rows, containerRef } = useGrid(layout);
   const zoomedSessionId = useUIStore((s) => s.zoomedSessionId);
   const poppedOutSessionIds = useUIStore((s) => s.poppedOutSessionIds);
+
+  // Clear zoom if the zoomed session was deleted
+  useEffect(() => {
+    if (zoomedSessionId && !sessions.find((s) => s.id === zoomedSessionId)) {
+      useUIStore.getState().toggleZoom(null);
+    }
+  }, [sessions, zoomedSessionId]);
 
   const maxSlots = cols * rows;
 

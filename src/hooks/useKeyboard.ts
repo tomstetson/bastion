@@ -69,11 +69,11 @@ export function useKeyboard({
         return;
       }
 
-      // --- Cmd+Enter: zoom/restore ---
+      // --- Cmd+Enter: zoom/restore (skip if session is popped out) ---
       if (e.key === "Enter") {
         e.preventDefault();
         const focusedId = useUIStore.getState().focusedTileSessionId;
-        if (focusedId) {
+        if (focusedId && !useUIStore.getState().isSessionPoppedOut(focusedId)) {
           useUIStore.getState().toggleZoom(focusedId);
         }
         return;
