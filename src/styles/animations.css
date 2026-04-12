@@ -1,0 +1,49 @@
+/**
+ * Animation utility classes for Bastion terminal tiles.
+ * Used across the grid layout for state transitions and visual feedback.
+ */
+
+/* Waiting session pulse — amber border breathes */
+@keyframes pulse-waiting {
+  0%, 100% { border-color: rgba(210, 153, 34, 0.6); }
+  50% { border-color: rgba(210, 153, 34, 1.0); }
+}
+
+.tile-waiting {
+  animation: pulse-waiting 2s ease-in-out infinite;
+}
+
+/* Zoom fade — other tiles dim when one is zoomed */
+.tile-fade-out {
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 150ms ease-out;
+}
+
+.tile-fade-in {
+  opacity: 1;
+  transition: opacity 150ms ease-in;
+}
+
+/* Pop-out shrink before disappearing */
+.tile-pop-out {
+  transform: scale(0.95);
+  opacity: 0;
+  transition: transform 100ms ease-in, opacity 100ms ease-in;
+}
+
+/* Placeholder fade in */
+.tile-placeholder-enter {
+  opacity: 0;
+  animation: fade-in 150ms ease-out forwards;
+}
+
+@keyframes fade-in {
+  to { opacity: 1; }
+}
+
+/* Focus glow */
+.tile-focused {
+  box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.3);
+  transition: box-shadow 100ms, border-color 100ms;
+}

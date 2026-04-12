@@ -101,9 +101,15 @@ export default function TerminalTile({ session }: TerminalTileProps) {
     return "#30363d";
   }, [isFocused, isWaiting]);
 
+  const tileClassName = [
+    isWaiting && !isFocused ? "tile-waiting" : "",
+    isFocused ? "tile-focused" : "",
+  ].filter(Boolean).join(" ") || undefined;
+
   return (
     <div
       data-testid="terminal-tile"
+      className={tileClassName}
       style={{
         display: "flex",
         flexDirection: "column",
