@@ -5,17 +5,25 @@
  * When a session is stopped, the xterm.js terminal is fully unmounted to avoid
  * "ghost" output. A clean stopped state with Resume/Remove buttons is shown instead.
  *
+ * Header layout:
+ *   ● session-name        claude    2m ago    [⤢] [⧉] [▾]
+ *
+ * Left group: status dot, session name (bold, double-click to rename), tool badge
+ * Right group: last activity, expand button, pop-out button, menu button
+ *
  * Border color reflects state:
  * - Blue (#58a6ff) when focused
  * - Amber (#d29922) when waiting for input
  * - Default (#30363d) otherwise
  */
 
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState, useRef, useEffect } from "react";
 import type { Session, SessionStatus } from "../../../electron/core/types";
 import { useTerminal } from "../../hooks/useTerminal";
 import { useUIStore } from "../../store/ui";
 import { useSessionsStore } from "../../store/sessions";
+import { useContextMenu } from "../../hooks/useContextMenu";
+import ContextMenu from "../ContextMenu";
 
 interface TerminalTileProps {
   session: Session;
@@ -39,6 +47,18 @@ const TOOL_LABELS: Record<string, string> = {
   custom: "Custom",
   shell: "Shell",
 };
+
+/** Shared style for header icon buttons */
+const ICON_BUTTON_STYLE = {
+  background: "none",
+  border: "none",
+  color: "#484f58",
+  cursor: "pointer",
+  fontSize: 12,
+  padding: "2px 4px",
+  lineHeight: 1,
+  WebkitAppRegion: "no-drag",
+} as React.CSSProperties;
 
 /** Format a timestamp as relative time ("2m ago", "1h ago", etc.) */
 function relativeTime(timestamp: number): string {
@@ -78,8 +98,26 @@ export default function TerminalTile({ session }: TerminalTileProps) {
   const setFocusedTile = useUIStore((s) => s.setFocusedTile);
   const toggleMaximized = useUIStore((s) => s.toggleMaximized);
   const stopSession = useSessionsStore((s) => s.stopSession);
+  const restartSession = useSessionsStore((s) => s.restartSession);
   const resumeSession = useSessionsStore((s) => s.resumeSession);
   const deleteSession = useSessionsStore((s) => s.deleteSession);
+  const renameSession = useSessionsStore((s) => s.renameSession);
+  const setGridSlot = useSessionsStore((s) => s.setGridSlot);
+
+  const contextMenu = useContextMenu();
+
+  // Inline rename state
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus rename input when it appears
+  useEffect(() => {
+    if (isRenaming && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [isRenaming]);
 
   const isFocused = focusedTileSessionId === session.id;
   const isWaiting = session.status === "waiting";
@@ -94,6 +132,66 @@ export default function TerminalTile({ session }: TerminalTileProps) {
       await deleteSession(session.id);
     }
   }, [deleteSession, session.id, session.name]);
+
+  /** Stub for pop-out — implemented in Task 6 */
+  const handlePopOut = () => {
+    /* implemented in Task 6 */
+  };
+
+  /** Save the rename and exit rename mode */
+  const handleRenameSave = useCallback(() => {
+    const trimmed = renameValue.trim();
+    if (trimmed && trimmed !== session.name) {
+      renameSession(session.id, trimmed);
+    }
+    setIsRenaming(false);
+  }, [renameValue, session.name, session.id, renameSession]);
+
+  /** Cancel rename without saving */
+  const handleRenameCancel = useCallback(() => {
+    setIsRenaming(false);
+  }, []);
+
+  /** Context menu items */
+  const menuItems = useMemo(
+    () => [
+      { label: "Expand", action: () => toggleMaximized(session.id) },
+      { label: "Pop Out to Window", action: handlePopOut },
+      {
+        label: "Rename",
+        action: () => {
+          setRenameValue(session.name);
+          setIsRenaming(true);
+        },
+      },
+      null, // separator
+      {
+        label: "Stop Session",
+        action: () => stopSession(session.id),
+        disabled: session.status === "stopped",
+      },
+      { label: "Restart Session", action: () => restartSession(session.id) },
+      null, // separator
+      { label: "Remove from Grid", action: () => setGridSlot(session.id, null) },
+      {
+        label: "Delete Session",
+        action: () => {
+          if (confirm(`Delete "${session.name}"?`)) deleteSession(session.id);
+        },
+        danger: true,
+      },
+    ],
+    [
+      session.id,
+      session.name,
+      session.status,
+      toggleMaximized,
+      stopSession,
+      restartSession,
+      deleteSession,
+      setGridSlot,
+    ],
+  );
 
   const borderColor = useMemo(() => {
     if (isFocused) return "#58a6ff";
@@ -134,33 +232,72 @@ export default function TerminalTile({ session }: TerminalTileProps) {
           userSelect: "none",
           flexShrink: 0,
         }}
-        onDoubleClick={() => toggleMaximized(session.id)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          contextMenu.show(e, menuItems);
+        }}
       >
         {/* Status dot */}
         <span
           style={{
-            width: 8,
-            height: 8,
+            width: 10,
+            height: 10,
             borderRadius: "50%",
-            background: STATUS_COLORS[session.status],
+            backgroundColor: STATUS_COLORS[session.status],
             flexShrink: 0,
           }}
         />
 
-        {/* Session name */}
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#c9d1d9",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            flex: 1,
-          }}
-        >
-          {session.name}
-        </span>
+        {/* Session name — inline rename on double-click */}
+        {isRenaming ? (
+          <input
+            ref={renameInputRef}
+            data-testid="tile-rename-input"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleRenameSave();
+              } else if (e.key === "Escape") {
+                handleRenameCancel();
+              }
+            }}
+            onBlur={handleRenameSave}
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#c9d1d9",
+              background: "transparent",
+              border: "none",
+              borderBottom: "1px solid #484f58",
+              outline: "none",
+              padding: 0,
+              fontFamily: "inherit",
+              flex: 1,
+              minWidth: 0,
+            }}
+          />
+        ) : (
+          <span
+            data-testid="tile-name"
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#c9d1d9",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: 1,
+            }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              setRenameValue(session.name);
+              setIsRenaming(true);
+            }}
+          >
+            {session.name}
+          </span>
+        )}
 
         {/* Tool badge */}
         <span
@@ -187,44 +324,61 @@ export default function TerminalTile({ session }: TerminalTileProps) {
           {relativeTime(session.updatedAt)}
         </span>
 
-        {/* Maximize button */}
+        {/* Expand button */}
         <button
+          data-testid="expand-btn"
           onClick={(e) => {
             e.stopPropagation();
             toggleMaximized(session.id);
           }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#8b949e",
-            cursor: "pointer",
-            fontSize: 14,
-            padding: "0 2px",
-            lineHeight: 1,
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#c9d1d9";
           }}
-          title="Maximize"
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#484f58";
+          }}
+          style={ICON_BUTTON_STYLE}
+          title="Expand (⌘↵)"
         >
           ⤢
         </button>
 
-        {/* Close button */}
+        {/* Pop-out button */}
         <button
+          data-testid="popout-btn"
           onClick={(e) => {
             e.stopPropagation();
-            stopSession(session.id);
+            handlePopOut();
           }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#8b949e",
-            cursor: "pointer",
-            fontSize: 14,
-            padding: "0 2px",
-            lineHeight: 1,
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#c9d1d9";
           }}
-          title="Stop session"
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#484f58";
+          }}
+          style={ICON_BUTTON_STYLE}
+          title="Pop out to window"
         >
-          ✕
+          ⧉
+        </button>
+
+        {/* Menu button */}
+        <button
+          data-testid="tile-menu-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            contextMenu.show(e, menuItems);
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#c9d1d9";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#484f58";
+          }}
+          style={ICON_BUTTON_STYLE}
+          title="Actions"
+        >
+          ▾
         </button>
       </div>
 
@@ -306,6 +460,16 @@ export default function TerminalTile({ session }: TerminalTileProps) {
         <TerminalBody
           sessionId={session.id}
           onFocus={() => setFocusedTile(session.id)}
+        />
+      )}
+
+      {/* Context menu */}
+      {contextMenu.visible && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={contextMenu.items}
+          onHide={contextMenu.hide}
         />
       )}
     </div>
