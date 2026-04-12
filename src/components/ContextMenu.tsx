@@ -21,6 +21,7 @@ interface ContextMenuProps {
 export default function ContextMenu({ x, y, items, onHide }: ContextMenuProps) {
   return (
     <div
+      data-testid="context-menu"
       style={{
         position: "fixed",
         left: x,

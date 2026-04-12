@@ -726,3 +726,212 @@ test.describe("Performance", () => {
     await page.keyboard.press("Escape");
   });
 });
+
+// =============================================================================
+// Zoom Mode
+// =============================================================================
+
+test.describe.serial("Zoom Mode", () => {
+  test.setTimeout(30000);
+
+  const zoomSessionName = `e2e-zoom-${Date.now()}`;
+
+  test("setup: create a shell session for zoom tests", async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "bastion-e2e-"));
+    await page.click('[data-testid="new-button"]');
+    const dialog = page.locator('[data-testid="new-session-dialog"]');
+    await expect(dialog).toBeVisible({ timeout: 3000 });
+
+    const standaloneTab = page.locator("button", { hasText: "Standalone" });
+    await standaloneTab.click();
+    await electronApp.evaluate(async ({ dialog }, dirPath) => {
+      dialog.showOpenDialog = async () => ({
+        canceled: false,
+        filePaths: [dirPath],
+      });
+    }, tmpDir);
+    await page.click("button:has-text('Browse...')");
+    await page.waitForTimeout(500);
+    await page.click('[data-testid="tool-shell"]');
+    const nameInput = page.locator(
+      'input[placeholder="Auto-generated if empty"]',
+    );
+    await nameInput.fill(zoomSessionName);
+    await page.click('[data-testid="create-btn"]');
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
+
+    // Wait for tile to appear
+    const tile = page.locator('[data-testid="terminal-tile"]', {
+      has: page.locator(`text=${zoomSessionName}`),
+    });
+    await expect(tile.first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test("expand button shows zoom overlay", async () => {
+    const tile = page.locator('[data-testid="terminal-tile"]', {
+      has: page.locator(`text=${zoomSessionName}`),
+    });
+    await expect(tile.first()).toBeVisible({ timeout: 5000 });
+
+    // Click the expand button on this tile
+    const expandBtn = tile.first().locator('[data-testid="expand-btn"]');
+    await expandBtn.click();
+
+    // Verify zoom overlay appears
+    const overlay = page.locator('[data-testid="zoom-overlay"]');
+    await expect(overlay).toBeVisible({ timeout: 3000 });
+
+    // Verify close button exists in toolbar
+    const closeBtn = page.locator('[data-testid="zoom-close-btn"]');
+    await expect(closeBtn).toBeVisible({ timeout: 3000 });
+  });
+
+  test("Escape exits zoom mode", async () => {
+    // We should still be zoomed from the previous test
+    const overlay = page.locator('[data-testid="zoom-overlay"]');
+    if (!(await overlay.isVisible())) {
+      // Re-zoom if needed
+      const tile = page.locator('[data-testid="terminal-tile"]', {
+        has: page.locator(`text=${zoomSessionName}`),
+      });
+      const expandBtn = tile.first().locator('[data-testid="expand-btn"]');
+      await expandBtn.click();
+      await expect(overlay).toBeVisible({ timeout: 3000 });
+    }
+
+    // Press Escape to exit zoom
+    await page.keyboard.press("Escape");
+    await expect(overlay).not.toBeVisible({ timeout: 3000 });
+  });
+
+  test("Cmd+Enter toggles zoom", async () => {
+    // Click the tile to focus it
+    const tile = page.locator('[data-testid="terminal-tile"]', {
+      has: page.locator(`text=${zoomSessionName}`),
+    });
+    await tile.first().click();
+    await page.waitForTimeout(200);
+
+    // Press Cmd+Enter to zoom
+    await page.keyboard.press("Meta+Enter");
+    const overlay = page.locator('[data-testid="zoom-overlay"]');
+    await expect(overlay).toBeVisible({ timeout: 3000 });
+
+    // Press Cmd+Enter again to unzoom
+    await page.keyboard.press("Meta+Enter");
+    await expect(overlay).not.toBeVisible({ timeout: 3000 });
+  });
+
+  test("cleanup: stop and delete zoom test session", async () => {
+    const tile = page.locator('[data-testid="terminal-tile"]', {
+      has: page.locator(`text=${zoomSessionName}`),
+    });
+    if ((await tile.count()) > 0) {
+      const stopBtn = tile.first().locator('button[title="Stop session"]');
+      if (await stopBtn.isVisible()) {
+        await stopBtn.click();
+        await page.waitForTimeout(1500);
+      }
+      const removeBtn = tile.first().locator("button:has-text('Remove')");
+      if (await removeBtn.isVisible()) {
+        await removeBtn.click();
+        await page.waitForTimeout(1000);
+      }
+    }
+  });
+});
+
+// =============================================================================
+// Tile Header
+// =============================================================================
+
+test.describe.serial("Tile Header", () => {
+  test.setTimeout(30000);
+
+  const tileSessionName = `e2e-tile-${Date.now()}`;
+
+  test("setup: create a shell session for tile header tests", async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "bastion-e2e-"));
+    await page.click('[data-testid="new-button"]');
+    const dialog = page.locator('[data-testid="new-session-dialog"]');
+    await expect(dialog).toBeVisible({ timeout: 3000 });
+
+    const standaloneTab = page.locator("button", { hasText: "Standalone" });
+    await standaloneTab.click();
+    await electronApp.evaluate(async ({ dialog }, dirPath) => {
+      dialog.showOpenDialog = async () => ({
+        canceled: false,
+        filePaths: [dirPath],
+      });
+    }, tmpDir);
+    await page.click("button:has-text('Browse...')");
+    await page.waitForTimeout(500);
+    await page.click('[data-testid="tool-shell"]');
+    const nameInput = page.locator(
+      'input[placeholder="Auto-generated if empty"]',
+    );
+    await nameInput.fill(tileSessionName);
+    await page.click('[data-testid="create-btn"]');
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
+
+    const tile = page.locator('[data-testid="terminal-tile"]', {
+      has: page.locator(`text=${tileSessionName}`),
+    });
+    await expect(tile.first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test("tile has expand, popout, and menu buttons", async () => {
+    const tile = page.locator('[data-testid="terminal-tile"]', {
+      has: page.locator(`text=${tileSessionName}`),
+    });
+    await expect(tile.first()).toBeVisible({ timeout: 5000 });
+
+    await expect(
+      tile.first().locator('[data-testid="expand-btn"]'),
+    ).toBeVisible();
+    await expect(
+      tile.first().locator('[data-testid="popout-btn"]'),
+    ).toBeVisible();
+    await expect(
+      tile.first().locator('[data-testid="tile-menu-btn"]'),
+    ).toBeVisible();
+  });
+
+  test("tile context menu appears on menu button click", async () => {
+    const tile = page.locator('[data-testid="terminal-tile"]', {
+      has: page.locator(`text=${tileSessionName}`),
+    });
+    await expect(tile.first()).toBeVisible({ timeout: 5000 });
+
+    // Click the menu button
+    const menuBtn = tile.first().locator('[data-testid="tile-menu-btn"]');
+    await menuBtn.click();
+
+    // Context menu should appear — look for menu items in the page
+    // (the context menu renders as a portal/overlay with menu item labels)
+    const contextMenu = page.locator('[data-testid="context-menu"]');
+    await expect(contextMenu).toBeVisible({ timeout: 3000 });
+
+    // Dismiss by clicking elsewhere
+    await page.click("body", { position: { x: 1, y: 1 } });
+    await page.waitForTimeout(300);
+  });
+
+  test("cleanup: stop and delete tile header test session", async () => {
+    const tile = page.locator('[data-testid="terminal-tile"]', {
+      has: page.locator(`text=${tileSessionName}`),
+    });
+    if ((await tile.count()) > 0) {
+      const stopBtn = tile.first().locator('button[title="Stop session"]');
+      if (await stopBtn.isVisible()) {
+        await stopBtn.click();
+        await page.waitForTimeout(1500);
+      }
+      const removeBtn = tile.first().locator("button:has-text('Remove')");
+      if (await removeBtn.isVisible()) {
+        await removeBtn.click();
+        await page.waitForTimeout(1000);
+      }
+    }
+  });
+});
