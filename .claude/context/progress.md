@@ -7,8 +7,8 @@ _None_
 _None_
 
 ## Next Up
-1. Fix E2E test infrastructure (Vite port extraction from main.js)
-2. Manual QA: zoom, pop-out, tile header, sidebar improvements
-3. Fix pre-existing TS error in electron/main.ts:106
-4. App icon (assets/icon.icns)
-5. Cut v0.1.0 tag from main
+1. Re-verify TUI's security hardening patterns made it into the Electron rewrite (UUID validation at IPC boundary, parameterized queries, 0o700 dirs, signal file location)
+2. Fix Playwright E2E port extraction issue
+3. App icon (assets/icon.icns)
+4. Rewrite CI workflows for Electron (vitest + typecheck + electron-forge make on tag)
+5. Cut v1.0.0-alpha.1 tag from main

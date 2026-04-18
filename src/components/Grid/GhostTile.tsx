@@ -19,6 +19,8 @@ export default function GhostTile({ onCreateSession }: GhostTileProps) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        width: "100%",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
