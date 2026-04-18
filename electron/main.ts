@@ -103,7 +103,7 @@ function createWindow(): void {
     console.error(`[RENDERER] Process gone:`, details);
   });
   mainWindow.webContents.on("console-message", (e) => {
-    const prefix = ["LOG", "WARN", "ERROR"][e.level] || "LOG";
+    const prefix = ({ info: "LOG", warning: "WARN", error: "ERROR" } as Record<string, string>)[e.level] || "LOG";
     console.log(`[RENDERER ${prefix}] ${e.message}`);
   });
 
