@@ -8,8 +8,21 @@ const config: ForgeConfig = {
     onlyModules: [],
   },
   packagerConfig: {
-    asar: true,
+    asar: {
+      unpack: "**/*.node",
+      unpackDir: "node_modules/node-pty",
+    },
     name: "Bastion",
+    // Vite bundles JS, but these external native modules must ship as well.
+    // Packager's normal production pruning removes development dependencies.
+    ignore: (file) => Boolean(file)
+      && file !== "/.vite" && !file.startsWith("/.vite/")
+      && file !== "/node_modules" && !file.startsWith("/node_modules/"),
+    osxSign: {
+      identity: "-",
+      identityValidation: false,
+      optionsForFile: () => ({ hardenedRuntime: false }),
+    },
   },
   makers: [new MakerDMG({}), new MakerZIP({})],
   plugins: [

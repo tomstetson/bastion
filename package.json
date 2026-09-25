@@ -7,22 +7,28 @@
     "prestart": "node scripts/ensure-electron-modules.js",
     "start": "node scripts/dev-start.js",
     "start:forge": "electron-forge start",
-    "rebuild:electron": "electron-rebuild -f",
+    "rebuild:electron": "node scripts/ensure-electron-modules.js",
     "rebuild:node": "npm rebuild better-sqlite3 node-pty",
+    "prebuild": "node scripts/ensure-electron-modules.js",
     "build": "electron-forge make",
+    "prepackage": "node scripts/ensure-electron-modules.js",
     "package": "electron-forge package",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "npx playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postinstall": "patch-package",
+    "test:dependency-security": "node --test scripts/dependency-security.test.cjs",
+    "test:packaged": "node scripts/dependency-runtime-smoke.cjs",
+    "test:artifact": "node scripts/check-packaged-artifact.cjs"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/addon-webgl": "^0.19.0",
     "@xterm/xterm": "^6.0.0",
-    "better-sqlite3": "^12.8.0",
+    "better-sqlite3": "^13.0.3",
     "fuzzysort": "^3.1.0",
-    "node-pty": "^1.0.0",
+    "node-pty": "^1.1.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "zustand": "^5.0.12"
@@ -32,16 +38,33 @@
     "@electron-forge/maker-dmg": "^7.11.1",
     "@electron-forge/maker-zip": "^7.11.1",
     "@electron-forge/plugin-vite": "^7.11.1",
-    "@electron/rebuild": "^4.0.3",
-    "@playwright/test": "^1.59.1",
+    "@electron/rebuild": "^4.2.0",
+    "@playwright/test": "^1.61.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "electron": "~35.7.5",
-    "playwright": "^1.59.1",
+    "electron": "~44.4.5",
+    "playwright": "^1.61.1",
     "typescript": "^5.9.3",
     "vite": "^8.0.7",
-    "vitest": "^4.1.3"
+    "vitest": "^4.1.3",
+    "patch-package": "^8.0.1"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "overrides": {
+    "@electron/rebuild": "$@electron/rebuild",
+    "tar": "^7.5.22",
+    "tmp": "^0.2.7",
+    "brace-expansion@^2.0.1": "^2.1.7",
+    "@electron/packager": {
+      "extract-zip": "npm:@electron-internal/extract-zip@1.0.5"
+    },
+    "appdmg": {
+      "image-size": "2.0.4"
+    },
+    "nan": "^2.29.0"
   }
 }
