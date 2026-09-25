@@ -1,0 +1,30 @@
+diff --git a/node_modules/appdmg/lib/appdmg.js b/node_modules/appdmg/lib/appdmg.js
+index 77748bf..3efd8d2 100644
+--- a/node_modules/appdmg/lib/appdmg.js
++++ b/node_modules/appdmg/lib/appdmg.js
+@@ -6,7 +6,7 @@ const path = require('path')
+ 
+ const async = require('async')
+ const DSStore = require('ds-store')
+-const sizeOf = require('image-size')
++const sizeOf = require('./image-size')
+ const validator = require('is-my-json-valid')
+ const parseColor = require('parse-color')
+ 
+diff --git a/node_modules/appdmg/lib/image-size.js b/node_modules/appdmg/lib/image-size.js
+new file mode 100644
+index 0000000..eca0f6c
+--- /dev/null
++++ b/node_modules/appdmg/lib/image-size.js
+@@ -0,0 +1,11 @@
++// Preserve appdmg's asynchronous filename API with the patched buffer parser.
++const fs = require('fs')
++const { imageSize } = require('image-size')
++module.exports = function sizeOf (filename, callback) {
++  fs.readFile(filename, (error, bytes) => {
++    if (error) return callback(error)
++    let dimensions
++    try { dimensions = imageSize(bytes) } catch (error) { return callback(error) }
++    callback(null, dimensions)
++  })
++}

@@ -13,6 +13,23 @@ const fs = require("fs");
 
 const MODULES = ["better-sqlite3", "node-pty"];
 const ELECTRON_VERSION = require("../node_modules/electron/package.json").version;
+const ELECTRON_BINARY = require("electron");
+
+function loadsInElectron(mod, modDir) {
+  const script = mod === "better-sqlite3"
+    ? `const Database = require(${JSON.stringify(modDir)}); const db = new Database(':memory:'); db.close();`
+    : `require(${JSON.stringify(modDir)});`;
+  try {
+    execFileSync(ELECTRON_BINARY, ["-e", script], {
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
+      stdio: "pipe",
+      timeout: 15_000,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 for (const mod of MODULES) {
   const modDir = path.join(__dirname, "..", "node_modules", mod);
@@ -28,7 +45,7 @@ for (const mod of MODULES) {
   // Check if we already compiled for this Electron version
   if (fs.existsSync(markerFile)) {
     const marker = fs.readFileSync(markerFile, "utf-8").trim();
-    if (marker === ELECTRON_VERSION) {
+    if (marker === ELECTRON_VERSION && loadsInElectron(mod, modDir)) {
       console.log(`[ensure-electron-modules] ${mod} already built for Electron ${ELECTRON_VERSION}`);
       continue;
     }
@@ -43,12 +60,16 @@ for (const mod of MODULES) {
 
   // Compile from source targeting Electron using execFileSync (no shell injection)
   execFileSync("npx", [
-    "node-gyp", "rebuild",
+    "--no-install", "node-gyp", "rebuild",
     `--target=${ELECTRON_VERSION}`,
     `--arch=${process.arch}`,
     "--dist-url=https://electronjs.org/headers",
     "--runtime=electron",
   ], { cwd: modDir, stdio: "inherit" });
+
+  if (!loadsInElectron(mod, modDir)) {
+    throw new Error(`${mod} did not load in Electron ${ELECTRON_VERSION} after rebuilding`);
+  }
 
   // Write marker so we don't rebuild every time
   fs.writeFileSync(markerFile, ELECTRON_VERSION);

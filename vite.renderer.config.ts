@@ -6,6 +6,7 @@ export default defineConfig({
   root: path.resolve(__dirname, "src"),
   plugins: [react()],
   build: {
+    outDir: path.resolve(__dirname, ".vite/renderer/main_window"),
     rollupOptions: {
       input: {
         index: path.resolve(__dirname, "src/index.html"),
